@@ -4,7 +4,9 @@ hostmac.py
 by Eric Dorsey
 ******************************
 Description:
-When run on a subnet, this program iterates through IP's xxx.xxx.xxx.1 - xxx.xxx.xxx.255 and outputs IP Address, Host Name and MAC address for each PC / device.
+When run, user selects to either: 
+a) Detect host IP address, and uses this to determine current subnet. Iterates through IP's on current subnit host is on (xxx.xxx.xxx.1 - xxx.xxx.xxx.255) and outputs IP Address, Host Name and MAC address for each PC / device. Results are written to /output/ip.csv
+b) Allows user to input any IP address. Outputs IP Address, Host Name and MAC address for given IP address. Results are written to /output/ip.csv
 ******************************
 Requirements:
 Python 2.7
