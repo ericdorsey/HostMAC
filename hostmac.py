@@ -62,15 +62,6 @@ def getPing(ip):
     pingText = "ping -n 1 " + ip
     ping = subprocess.Popen(pingText, shell=True, stdout=subprocess.PIPE)
     pingResult = ping.communicate()
-    #print ">>>"
-    #print pingResult[0]
-    #try:
-    #    print "-2 >>>" + str(pingResult[0].split("\n")[-2])
-    #    print "-1 >>>" + str(pingResult[0].split("\n")[-1])
-    #    print "0 >>>" + str(pingResult[0].split("\n")[0])
-    #    print "1 >>>" + str(pingResult[0].split("\n")[1])
-    #except IndexError:
-    #    print "IndexError"
     try:
         if pingResult[0].split("\n")[1].startswith("Pinging"):
             subPing = pingResult[0].split("\n")[1]
@@ -99,17 +90,6 @@ def getMac(ip):
     arpText = "arp -a " + ip 
     arp = subprocess.Popen(arpText, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     arpResult = arp.communicate()
-    #print "arpResult >>>",
-    #print str(arpResult)
-    #print "errors >>>",
-    #print str(errors)
-    #try:
-    #    print "-2 >>>" + str(arpResult[0].split("\n")[-2])
-    #    #print "1 >>>" + str(arpResult[0].split("\n")[1])
-    #    #print "2 >>>" + str(arpResult[0].split("\n")[2])
-    #    #print "1 >>>" + str(arpResult[0].split("\n")[1])
-    #except IndexError:
-    #    print "IndexError"
     try:
         if arpResult[0].startswith("No ARP"):
             item = "MAC not found-No ARP entry"
@@ -166,17 +146,6 @@ def getAll(ip):
     myfile.close()
 
 myIP = ([ip for ip in socket.gethostbyname_ex(socket.gethostname())[2] if not ip.startswith("127.")][0])
-
-#test nslooky()
-#while True:
-#    answer = raw_input("input: ")
-#    print nslooky("answer")
-
-#test ipCheck()
-#while True:
-#    answer = raw_input("IP: ")
-#    truFalse = ipCheck(answer)
-#    print truFalse
 
 
 while True:
