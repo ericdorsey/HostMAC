@@ -1,11 +1,12 @@
 ### hostmac.py
-Date: 10/2/11  
-Author: Eric Dorsey
 
 **Description:**
-When run, user selects to either: 
-a) Detect host IP address, and uses this to determine current subnet. Iterates through IP's on current subnit host is on (xxx.xxx.xxx.1 - xxx.xxx.xxx.255) and outputs IP Address, Host Name and MAC address for each PC / device. Results are written to /output/ip.csv
-b) Allows user to input any IP address. Outputs IP Address, Host Name and MAC address for given IP address. Results are written to /output/ip.csv
+When run, user has two options: 
+
+* Detect host IP address, then iterate through subnet current host is on (xxx.xxx.xxx.1 - xxx.xxx.xxx.255) and outputs IP Address, Host Name and MAC address for each PC / device found. 
+* Asks user to input any IP address (within current subnet) and outputs Host Name and MAC address for that IP address. 
+
+Results are written to /output/ip.csv
 
 **Requirements:** 
 Python 2.7
