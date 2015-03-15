@@ -3,6 +3,7 @@ import os
 import subprocess
 import csv
 import sys
+import re
 
 #creates the /output directory
 def makeDir():
@@ -59,19 +60,29 @@ def titleCheck():
 
 #returns ping results
 def getPing(ip):
-    pingText = "ping -n 1 " + ip
+    if os.name == 'nt':  # Windows
+        pingText = "ping -n 1 " + ip
+    elif os.name =='posix':  # Linux
+        pingText = "ping -c 1 " + ip
     ping = subprocess.Popen(pingText, shell=True, stdout=subprocess.PIPE)
     pingResult = ping.communicate()
-    try:
-        if pingResult[0].split("\n")[1].startswith("Pinging"):
-            subPing = pingResult[0].split("\n")[1]
-            subPing = subPing.split()
-            subPing = subPing[0] + " " + subPing[1]
-        if pingResult[0].split("\n")[0].startswith("Ping request could not"):
-            subPing = pingResult[0].split("\n")[0].split()[6][:-1] + " Ping-no host found"
-            #subPing = "Ping-no host found"
-    except:
-        subPing = "General except error in getPing()"
+    if os.name == 'nt':  # Windows
+        try:
+            if pingResult[0].split("\n")[1].startswith("Pinging"):
+                subPing = pingResult[0].split("\n")[1]
+                subPing = subPing.split()
+                subPing = subPing[0] + " " + subPing[1]
+            if pingResult[0].split("\n")[0].startswith("Ping request could not"):
+                subPing = pingResult[0].split("\n")[0].split()[6][:-1] + " Ping-no host found"
+                #subPing = "Ping-no host found"
+        except:
+            subPing = "General except error in getPing()"
+    elif os.name == 'posix':  # Linux
+        ping_found = re.search(r'time=(.*\sms)?', pingResult[0])
+        if ping_found:
+            subPing = ping_found.group(1)
+        else:
+            subPing = 'Host Unreachable'
     print subPing,
     return subPing
 
@@ -90,24 +101,33 @@ def getMac(ip):
     arpText = "arp -a " + ip 
     arp = subprocess.Popen(arpText, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     arpResult = arp.communicate()
-    try:
-        if arpResult[0].startswith("No ARP"):
-            item = "MAC not found-No ARP entry"
+    if os.name == 'nt':  # Windows
+        try:
+            if arpResult[0].startswith("No ARP"):
+                item = "MAC not found-No ARP entry"
+                print item,
+            if arpResult[0].split("\n")[1].startswith("Interface:"):
+                item = arpResult[0].split("\n")[-2]
+                item = item.split()[1]
+                print item,
+            if arpResult[1] == None:
+                item = "ARP-bad argument"
+                print item,
+        except IndexError:
+            if arpResult[1].startswith("ARP: bad argument"):
+                item = "ARP: bad argument"
+                print item,
+        except:
+            item = "General except error in getMac()"
             print item,
-        if arpResult[0].split("\n")[1].startswith("Interface:"):
-            item = arpResult[0].split("\n")[-2]
-            item = item.split()[1]
-            print item,
-        if arpResult[1] == None:
-            item = "ARP-bad argument"
-            print item,
-    except IndexError:
-        if arpResult[1].startswith("ARP: bad argument"):
-            item = "ARP: bad argument"
-            print item,
-    except:
-        item = "General except error in getMac()"
-        print item,
+    if os.name == 'posix':  # Linux
+        find_mac = re.search(r'\s(([0-9A-F]{2}[:-]){5}([0-9A-F]{2}))?\s',
+                             arpResult[0].upper())
+        if find_mac:
+            item = find_mac.group(1)
+        else:
+            item = 'No MAC Found'
+        print item
     return item
 
 def getOne(ip):
