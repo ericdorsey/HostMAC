@@ -12,4 +12,4 @@ Results are written to /output/ip.csv
 Python 2.7
 
 **Limitations:**
-HostMAC is meant to be run from a Windows client, as the program parses text returned from `ARP -A` commands in a Windows command prompt (cmd.exe). In other words, do not run it from a Linux or OSX box. IPv4 compatible only. 
+IPv4 compatible only.
