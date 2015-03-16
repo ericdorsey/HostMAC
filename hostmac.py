@@ -165,12 +165,22 @@ def getAll(ip):
         last = str(int(last) + 1)
     myfile.close()
 
-myIP = ([ip for ip in socket.gethostbyname_ex(socket.gethostname())[2] if not ip.startswith("127.")][0])
+
+def detect_ip():
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        s.connect(('example.com', 0))
+        ip_address = s.getsockname()[0]
+    except socket.error:
+        ip_address = '127.0.0.1'
+    finally:
+        s.close()
+    return ip_address
 
 
 while True:
     print
-    print "Detected IP: " + myIP
+    print "Detected IP: " + detect_ip()
     print
     print "1) Continue with detected IP (creates 254 entries)"
     print "2) Enter another IP (creates one entry)"
@@ -181,7 +191,7 @@ while True:
         if answer == 1:
             print
             titleCheck()
-            getAll(myIP)
+            getAll(detect_ip())
             sys.exit()
         elif answer == 2:
             print
