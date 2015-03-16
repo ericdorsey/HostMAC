@@ -19,7 +19,7 @@ Results are written to ```/output/ip.csv```
 * IPv4 compatible only.    
 * Not currently compatible with OSX
 
-Tested by @bcambl in:
+Tested by [@bcambl](https://github.com/bcambl) in:
 
 * Fedora 21 (python 2.7.8)  
 * CentOS 6.6 (python 2.6.6)  
@@ -28,7 +28,7 @@ Tested by @bcambl in:
 * Windows 8 (python 2.7.9)  
 * Windows 8 + Cygwin (python 2.7.8)  
 
-Tested by @ericdorsey in:  
+Tested by [@ericdorsey](https://github.com/ericdorsey) in:  
 
 * Windows 7 (python 2.7.2)
 * Ubuntu 14.04.2 LTS (python 2.7.6)
