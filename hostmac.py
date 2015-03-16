@@ -14,28 +14,13 @@ def makeDir():
 
 #verifies correct format of IP xxx.xxx.xxx.xxx
 def ipCheck(inputIP):
-    if inputIP.count(".") != 3:
+    ipregex = '\\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.)' \
+              '{3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\b'
+    validIP = re.match(ipregex, inputIP)
+    if validIP:
+        return True
+    else:
         return False
-    try:
-        first = inputIP.split(".")[0]
-        second = inputIP.split(".")[1]
-        third = inputIP.split(".")[2]
-        fourth = inputIP.split(".")[3]
-        octets = [first, second, third, fourth]
-    except IndexError:
-        return False
-    for i in octets:
-        if len(i) < 1:
-            return False
-        if len(i) > 3:
-            return False
-        else:
-            pass
-        try:
-            int(i)
-        except ValueError:
-            return False
-    return True
 
 #returns hostname given IP
 def nslooky(ip):
