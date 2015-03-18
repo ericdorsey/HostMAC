@@ -1,10 +1,10 @@
-### hostmac.py
+# hostmac.py
 
 **Description:**  
 When run, user has two available options: 
 
 * Detect host IP address, then iterate through subnet current host is on (xxx.xxx.xxx.1 - xxx.xxx.xxx.255) and outputs:
-  *  IP Address, Host Name and MAC address for each device found
+  *  IP Address, Ping ```ms``` response time, Host Name and MAC address for each device found
  
 * Or, asks user to input any IP address (within current subnet) and outputs Host Name and MAC address for that one IP address. 
 
@@ -25,8 +25,7 @@ Tested by [@bcambl](https://github.com/bcambl) in:
 * CentOS 6.6 (python 2.6.6)  
 * CentoOS 7.0 (python 2.7.5)  
 * Ubuntu 14.10 (2.7.8)  
-* Windows 8 (python 2.7.9)  
-* Windows 8 + Cygwin (python 2.7.8)  
+* Windows 8 (python 2.7.9)   
 
 Tested by [@ericdorsey](https://github.com/ericdorsey) in:  
 
