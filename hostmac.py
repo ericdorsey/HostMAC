@@ -31,7 +31,7 @@ def nslooky(ip):
         output = "No host name found" 
         return output
 
-#creates titles in .csv output file
+# Creates titles (headers) in .csv output file
 def titleCheck():
     exists = os.path.exists(r"./output/ip.csv")
     if exists == True:
@@ -43,42 +43,40 @@ def titleCheck():
         titles = ["ip", "hostname", "mac"]
         wr.writerow(titles)
 
-#returns ping results
-def getPing(ip):
+# Returns ping ms resonse time of pinged host 
+def getPing_msResponse(ip):
     if os.name == 'nt':  # Windows
         pingText = "ping -n 1 " + ip
     elif os.name =='posix':  # Linux
         pingText = "ping -c 1 " + ip
     ping = subprocess.Popen(pingText, shell=True, stdout=subprocess.PIPE)
     pingResult = ping.communicate()
+    #print pingResult # Remove after
     if os.name == 'nt':  # Windows
-        try:
-            if pingResult[0].split("\n")[1].startswith("Pinging"):
-                subPing = pingResult[0].split("\n")[1]
-                subPing = subPing.split()
-                subPing = subPing[0] + " " + subPing[1]
-            if pingResult[0].split("\n")[0].startswith("Ping request could not"):
-                subPing = pingResult[0].split("\n")[0].split()[6][:-1] + " Ping-no host found"
-                #subPing = "Ping-no host found"
-        except:
-            subPing = "General except error in getPing()"
-    elif os.name == 'posix':  # Linux
+        ping_found = re.search(r'time.*ms', pingResult[0])
+        if ping_found:
+            ping_msResponseFull = ping_found.group()
+            ping_msResponse = ping_msResponseFull[5:]
+            #ping_msResponse = ping_msResponse.lstrip("time<")
+        else:
+            ping_msResponse = 'Host Unreachable'
+    elif os.name == 'posix':  # *nix or OSX
         ping_found = re.search(r'time=(.*\sms)?', pingResult[0])
         if ping_found:
-            subPing = ping_found.group(1)
+            ping_msResponse = ping_found.group(1)
         else:
-            subPing = 'Host Unreachable'
-    print subPing,
-    return subPing
+            ping_msResponse = 'Host Unreachable'
+    #print "ping_msRepsonse in getPing_msResponse(): ", ping_msResponse # Debugging
+    return ping_msResponse
 
-#returns name results
+# Returns name of pinged host
 def getName(ip):
     try:
         name = nslooky(ip)
         name = name.split(".")[0]
     except:
         name = "General except error in getName()"
-    print name,
+    #print name, #Debugging
     return name
 
 #returns MAC results
@@ -90,21 +88,22 @@ def getMac(ip):
         try:
             if arpResult[0].startswith("No ARP"):
                 item = "MAC not found-No ARP entry"
-                print item,
+                #print item,
             if arpResult[0].split("\n")[1].startswith("Interface:"):
                 item = arpResult[0].split("\n")[-2]
                 item = item.split()[1]
-                print item,
+                item = item.replace("-", ":").upper()
+                #print item,
             if arpResult[1] == None:
                 item = "ARP-bad argument"
-                print item,
+                #print item,
         except IndexError:
             if arpResult[1].startswith("ARP: bad argument"):
                 item = "ARP: bad argument"
-                print item,
+                #print item,
         except:
             item = "General except error in getMac()"
-            print item,
+            #print item,
     if os.name == 'posix':  # Linux
         find_mac = re.search(r'\s(([0-9A-F]{2}[:-]){5}([0-9A-F]{2}))?\s',
                              arpResult[0].upper())
@@ -112,7 +111,7 @@ def getMac(ip):
             item = find_mac.group(1)
         else:
             item = 'No MAC Found'
-        print item
+        #print item
     return item
 
 def getOne(ip):
@@ -123,11 +122,12 @@ def getOne(ip):
         print "Could not open /output/ip.csv: I/O error({0}): {1}".format(errno, strerror)
         sys.exit()
     wr = csv.writer(myfile)
-    ping = getPing(ip)
+    ping = getPing_msResponse(ip)
     name = getName(ip)
     mac = getMac(ip)
-    csvOut = [ip, name, mac]
+    csvOut = [ip, ping, name, mac]
     wr.writerow(csvOut)
+    print "%s %s %s %s" % (ip, ping, name, mac)
     myfile.close()
 
 def getAll(ip):
@@ -140,14 +140,15 @@ def getAll(ip):
     firstThree = ip.split(".")[0] + "." + ip.split(".")[1] + "." + ip.split(".")[2] + "."
     last = "1"
     while int(last) <= 254:
-        print
+        #print
         ip = firstThree + last
-        ping = getPing(ip)
+        ping = getPing_msResponse(ip)
         name = getName(ip)
         mac = getMac(ip)
-        csvOut = [ip, name, mac]
+        csvOut = [ip, ping, name, mac]
         wr.writerow(csvOut)
         last = str(int(last) + 1)
+        print "%s %s %s %s" % (ip, ping, name, mac)
     myfile.close()
 
 
