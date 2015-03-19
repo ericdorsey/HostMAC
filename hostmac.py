@@ -141,21 +141,36 @@ def getAll(ip):
     myfile.close()
 
 
-def detect_ip():
+def detect_ip(ip_address=None):
+    """ Create a UDP socket connection to populate getsockname()
+    The address does not actually need to resolve ie: 1.2.3.4
+    :param ip_address:
+    :return:
+    """
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     try:
-        s.connect(('example.com', 0))
+        s.connect(('1.2.3.4', 0))
         ip_address = s.getsockname()[0]
     except socket.error:
-        ip_address = '127.0.0.1'
+        print("Failed to detect IP of current host!")
+        choice = raw_input("(I)nput IP manually, or (Q)uit:")
+        if choice.upper() == "I":
+            while True:
+                if not ip_address or not ipCheck(ip_address):
+                    ip_address = raw_input("INPUT IP: ")
+                else:
+                    break
+        else:
+            sys.exit("Quitting..")
     finally:
         s.close()
     return ip_address
 
 
 while True:
+    ip = detect_ip()
     print
-    print "Detected IP: " + detect_ip()
+    print "Detected IP: " + ip
     print
     print "1) Continue with detected IP (creates 254 entries)"
     print "2) Enter another IP (creates one entry)"
@@ -166,7 +181,7 @@ while True:
         if answer == 1:
             print
             titleCheck()
-            getAll(detect_ip())
+            getAll(ip)
             sys.exit()
         elif answer == 2:
             print
