@@ -31,3 +31,6 @@ Tested by [@ericdorsey](https://github.com/ericdorsey) in:
 
 * Windows 7 (python 2.7.2)
 * Ubuntu 14.04.2 LTS (python 2.7.6)
+
+___
+[![https://www.python.org/](https://www.python.org/static/community_logos/python-powered-w-100x40.png)](https://www.python.org/)
