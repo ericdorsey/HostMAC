@@ -26,6 +26,7 @@ ___
 Tested by [@bcambl](https://github.com/bcambl) in:
 
 * Fedora 21 (python 2.7.8)  
+* Fedora 21 (python 3.4.1)
 * CentOS 6.6 (python 2.6.6)  
 * CentoOS 7.0 (python 2.7.5)  
 * Ubuntu 14.10 (2.7.8)  
