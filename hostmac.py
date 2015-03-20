@@ -60,19 +60,11 @@ def getPing_msResponse(ip):
         pingText = "ping -c 1 " + ip
     ping = subprocess.Popen(pingText, shell=True, stdout=subprocess.PIPE)
     pingResult = ping.communicate()
-    if os.name == 'nt':  # Windows
-        ping_found = re.search(r'time.*ms', pingResult[0])
-        if ping_found:
-            ping_msResponseFull = ping_found.group()
-            ping_msResponse = ping_msResponseFull[5:]
-        else:
-            ping_msResponse = 'Host unreachable'
-    elif os.name == 'posix':  # *nix or OSX
-        ping_found = re.search(r'time=(.*\sms)?', pingResult[0])
-        if ping_found:
-            ping_msResponse = ping_found.group(1)
-        else:
-            ping_msResponse = 'Host unreachable'
+    ping_found = re.search(r'time[=]?(\d*[\.]?\d*\s?ms)?', str(pingResult[0]))
+    if ping_found:
+        ping_msResponse = ping_found.group(1)
+    else:
+        ping_msResponse = 'Host unreachable'
     return ping_msResponse
 
 # Returns name of pinged host
