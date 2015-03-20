@@ -3,12 +3,16 @@
 **Description:**  
 When run, user has two available options: 
 
-* Detect host IP address, then iterate through subnet current host is on (xxx.xxx.xxx.1 - xxx.xxx.xxx.255) and outputs:
-  *  IP Address, Ping ```ms``` response time, Host Name and MAC address for each device found
+* Detect host IP address, then iterate through subnet current host is on (x.x.x.1-x.x.x.254) and outputs:
+  *  IP Address, ping ```ms``` response time, Hostname and MAC address for each device found
  
-* Or, asks user to input any IP address (within current subnet) and outputs Host Name and MAC address for that one IP address. 
+* Enter any IP address, will output (for that device):
+  * IP Address, ping ```ms``` response time, Hostname and MAC address
+ 
 
-Results are written to ```/output/ip.csv```
+* Results are written to ```/output/ip.csv```
+
+___
 
 **Requirements:**   
 
@@ -17,7 +21,7 @@ Results are written to ```/output/ip.csv```
 **Limitations:**  
 
 * IPv4 compatible only.    
-* Not currently compatible with OSX
+___
 
 Tested by [@bcambl](https://github.com/bcambl) in:
 
@@ -31,6 +35,7 @@ Tested by [@ericdorsey](https://github.com/ericdorsey) in:
 
 * Windows 7 (python 2.7.2)
 * Ubuntu 14.04.2 LTS (python 2.7.6)
+* OSX 10.10.2 (python 2.7.6)
 
 ___
 [![https://www.python.org/](https://www.python.org/static/community_logos/python-powered-w-100x40.png)](https://www.python.org/)
