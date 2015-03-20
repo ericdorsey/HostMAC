@@ -24,12 +24,20 @@ def ipCheck(inputIP):
 
 # Given an IP, returns hostname (of client running hostmac.py)
 def nslooky(ip):
-    try: 
-        output = socket.gethostbyaddr(ip)
-        return output[0]
-    except: 
-        output = "No host name found" 
+    if sys.platform == 'darwin': # OSX
+        output = subprocess.Popen("smbutil status %s | grep Server" % ip, shell=True, stdout=subprocess.PIPE)
+        output = output.communicate()
+        output = output[0].split(' ')[1].strip()
+        #print output
         return output
+        #return output
+    else:
+        try:
+            output = socket.gethostbyaddr(ip)
+            return output[0]
+        except:
+            output = "No host name found"
+            return output
 
 # Creates titles (headers) in .csv output file
 def titleCheck():
@@ -70,6 +78,7 @@ def getPing_msResponse(ip):
 def getName(ip):
     try:
         name = nslooky(ip)
+        print "name in getName():", name
         name = name.split(".")[0]
     except:
         name = "Exception; error in getName()!"
@@ -77,10 +86,19 @@ def getName(ip):
 
 # Given an IP, returns MAC results
 def getMac(ip):
-    arpText = "arp -a " + ip 
-    arp = subprocess.Popen(arpText, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    arpResult = arp.communicate()
+    #arpText = "arp -a " + ip
+    #arp = subprocess.Popen(arpText, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+    def subprocArp(arpText):
+        arp = subprocess.Popen(arpText, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        arp = arp.communicate()
+        #print "arp in subprocArp(): ", arp
+        return arp
+
+    #arpResult = arp.communicate()
     if os.name == 'nt':  # Windows
+        #arpText = "arp -a " + ip
+        arpResult = subprocArp("arp -a %s" % ip)
         try:
             if arpResult[0].startswith("No ARP"):
                 item = "MAC not found-No ARP entry"
@@ -96,6 +114,7 @@ def getMac(ip):
         except:
             item = "General except error in getMac()"
     if os.name == 'posix':  # Linux
+        arpResult = subprocArp("arp -a | grep -w %s" % ip)
         find_mac = re.search(r'\s(([0-9A-F]{2}[:-]){5}([0-9A-F]{2}))?\s',
                              arpResult[0].upper())
         if find_mac:
@@ -152,16 +171,21 @@ def detect_ip(ip_address=None):
         s.connect(('1.2.3.4', 0))
         ip_address = s.getsockname()[0]
     except socket.error:
-        print("Failed to detect IP of current host!")
-        choice = raw_input("(I)nput IP manually, or (Q)uit:")
-        if choice.upper() == "I":
-            while True:
-                if not ip_address or not ipCheck(ip_address):
-                    ip_address = raw_input("INPUT IP: ")
-                else:
-                    break
-        else:
-            sys.exit("Quitting..")
+        try:
+            # OSX doesn't like port 0, use Google public DNS and port 80
+            s.connect(('8.8.8.8', 80))
+            ip_address = s.getsockname()[0]
+        except socket.error:
+            print("Failed to detect IP of current host!")
+            choice = raw_input("(I)nput host IP manually, or (Q)uit?: ")
+            if choice.upper() == "I":
+                while True:
+                    if not ip_address or not ipCheck(ip_address):
+                        ip_address = raw_input("INPUT IP: ")
+                    else:
+                        break
+            else:
+                sys.exit("Quitting..")
     finally:
         s.close()
     return ip_address
