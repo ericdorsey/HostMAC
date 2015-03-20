@@ -24,18 +24,21 @@ def ipCheck(inputIP):
 
 # Given an IP, returns hostname (of client running hostmac.py)
 def nslooky(ip):
-    if sys.platform == 'darwin': # OSX
-        output = subprocess.Popen("smbutil status %s | grep Server" % ip, shell=True, stdout=subprocess.PIPE)
-        output = output.communicate()
-        output = output[0].split(' ')[1].strip()
-        #print output
-        return output
-        #return output
-    else:
-        try:
-            output = socket.gethostbyaddr(ip)
-            return output[0]
-        except:
+    try:
+        output = socket.gethostbyaddr(ip)
+        return output[0]
+    except:
+        if sys.platform == 'darwin': # OSX
+            output = subprocess.Popen("smbutil status %s | grep Server" % ip, shell=True, stdout=subprocess.PIPE)
+            output = output.communicate()
+            if output[0] == "":
+                output = "No host name found"
+                return output
+            output = output[0].split(' ')[1].strip()
+            #print output
+            return output
+            #return output
+        else:
             output = "No host name found"
             return output
 
@@ -78,10 +81,10 @@ def getPing_msResponse(ip):
 def getName(ip):
     try:
         name = nslooky(ip)
-        print "name in getName():", name
-        name = name.split(".")[0]
+        #print "name in getName():", name #debugging
+        #name = name.split(".")[0]
     except:
-        name = "Exception; error in getName()!"
+        name = "Error in getName()"
     return name
 
 # Given an IP, returns MAC results
