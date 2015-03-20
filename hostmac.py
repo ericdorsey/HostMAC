@@ -32,14 +32,12 @@ def nslooky(ip):
             output = subprocess.Popen("smbutil status %s | grep Server" % ip, shell=True, stdout=subprocess.PIPE)
             output = output.communicate()
             if output[0] == "":
-                output = "No host name found"
+                output = "No hostname found"
                 return output
             output = output[0].split(' ')[1].strip()
-            #print output
             return output
-            #return output
         else:
-            output = "No host name found"
+            output = "No hostname found"
             return output
 
 # Creates titles (headers) in .csv output file
@@ -68,62 +66,53 @@ def getPing_msResponse(ip):
             ping_msResponseFull = ping_found.group()
             ping_msResponse = ping_msResponseFull[5:]
         else:
-            ping_msResponse = 'Host Unreachable'
+            ping_msResponse = 'Host unreachable'
     elif os.name == 'posix':  # *nix or OSX
         ping_found = re.search(r'time=(.*\sms)?', pingResult[0])
         if ping_found:
             ping_msResponse = ping_found.group(1)
         else:
-            ping_msResponse = 'Host Unreachable'
+            ping_msResponse = 'Host unreachable'
     return ping_msResponse
 
 # Returns name of pinged host
 def getName(ip):
     try:
         name = nslooky(ip)
-        #print "name in getName():", name #debugging
-        #name = name.split(".")[0]
     except:
-        name = "Error in getName()"
+        name = "Gen. except error in getName()"
     return name
 
 # Given an IP, returns MAC results
 def getMac(ip):
-    #arpText = "arp -a " + ip
-    #arp = subprocess.Popen(arpText, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-
     def subprocArp(arpText):
         arp = subprocess.Popen(arpText, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         arp = arp.communicate()
-        #print "arp in subprocArp(): ", arp
         return arp
-
-    #arpResult = arp.communicate()
     if os.name == 'nt':  # Windows
-        #arpText = "arp -a " + ip
         arpResult = subprocArp("arp -a %s" % ip)
         try:
             if arpResult[0].startswith("No ARP"):
-                item = "MAC not found-No ARP entry"
+                item = "MAC not found, No ARP entry"
             if arpResult[0].split("\n")[1].startswith("Interface:"):
                 item = arpResult[0].split("\n")[-2]
                 item = item.split()[1]
                 item = item.replace("-", ":").upper()
             if arpResult[1] == None:
-                item = "ARP-bad argument"
+                item = "ARP bad argument"
         except IndexError:
             if arpResult[1].startswith("ARP: bad argument"):
-                item = "ARP: bad argument"
+                item = "ARP bad argument"
         except:
-            item = "General except error in getMac()"
-    if os.name == 'posix':  # Linux
+            item = "Gen. except error in getMac()"
+    if os.name == 'posix': # *nux or OSX
         arpResult = subprocArp("arp -a | grep -w %s" % ip)
         find_mac = re.search(r'\s(([0-9A-F]{2}[:-]){5}([0-9A-F]{2}))?\s',
                              arpResult[0].upper())
         if find_mac:
             item = find_mac.group(1)
         else:
-            item = 'No MAC Found'
+            item = 'No MAC addr. found'
     return item
 
 def getOne(ip):
