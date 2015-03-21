@@ -22,7 +22,7 @@ def ipCheck(inputIP):
     else:
         return False
 
-# Given an IP, returns hostname (of client running hostmac.py)
+# Given an IP, returns hostname
 def nslooky(ip):
     try:
         output = socket.gethostbyaddr(ip)
