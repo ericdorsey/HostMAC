@@ -120,39 +120,28 @@ def getMac(ip):
     return item
 
 
-def getOne(ip, folder_name):
-    print('\n')
+def get_results(ip, folder_name, get_all=False):
     try:
         myfile = open("./%s/ip.csv" % folder_name, "a")
+        wr = csv.writer(myfile)
     except IOError as e:
-        print("Could not open /{2}/ip.csv: I/O error({0}): {1}".format(e.errno, e.strerror, folder_name))
+        print("Could not open /{2}/ip.csv: "
+              "I/O error({0}): {1}".format(e.errno, e.strerror, folder_name))
         sys.exit()
-    wr = csv.writer(myfile)
-    ping = getPing_msResponse(ip)
-    name = getName(ip)
-    mac = getMac(ip)
-    csvOut = [ip, ping, name, mac]
-    wr.writerow(csvOut)
-    print("%s %s %s %s" % (ip, ping, name, mac))
-    myfile.close()
-
-def getAll(ip, folder_name):
-    try:
-        myfile = open("./%s/ip.csv" % folder_name, "a")
-    except IOError as e:
-        print("Could not open /{2}/ip.csv: I/O error({0}): {1}".format(e.errno, e.strerror, folder_name))
-        sys.exit()
-    wr = csv.writer(myfile)
-    firstThree = ip.split(".")[0] + "." + ip.split(".")[1] + "." + ip.split(".")[2] + "."
-    last = "1"
-    while int(last) <= 254:
-        ip = firstThree + last
+    if get_all:
+        first_three = re.match(r'((\d{,3}\.\d{,3}\.\d{,3})\.)?(\d{,3})', ip)
+        for address in range(1, 255):
+            ip = first_three.group(1) + str(address)
+            ping = getPing_msResponse(ip)
+            name = getName(ip)
+            mac = getMac(ip)
+            wr.writerow([ip, ping, name, mac])
+            print("%s %s %s %s" % (ip, ping, name, mac))
+    else:
         ping = getPing_msResponse(ip)
         name = getName(ip)
         mac = getMac(ip)
-        csvOut = [ip, ping, name, mac]
-        wr.writerow(csvOut)
-        last = str(int(last) + 1)
+        wr.writerow([ip, ping, name, mac])
         print("%s %s %s %s" % (ip, ping, name, mac))
     myfile.close()
 
@@ -200,7 +189,7 @@ while True:
         if answer == 1:
             print('\n')
             titleCheck(folder_name)
-            getAll(ip, folder_name)
+            get_results(ip, folder_name, get_all=True)
             sys.exit()
         elif answer == 2:
             print('\n')
@@ -208,7 +197,7 @@ while True:
             trueFalse = ipCheck(choiceIP)
             if trueFalse == True:
                 titleCheck(folder_name)
-                getOne(choiceIP, folder_name)
+                get_results(choiceIP, folder_name)
                 sys.exit()
             if trueFalse == False:
                 print("\n")
