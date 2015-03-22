@@ -4,6 +4,7 @@ import subprocess
 import csv
 import sys
 import re
+import time
 
 # Override builtin: raw_input was renamed to input in python3 (PEP 3111)
 try:
@@ -12,11 +13,25 @@ except NameError:
     pass
 
 # Creates the /output directory
-def makeDir():
-    try:
-        os.makedirs("./output")
-    except OSError:
-        pass
+def make_dir():
+    date_today = time.strftime("%Y-%m-%d")
+    folder_name = "%s_output" % date_today
+    # Only create output folder if it doesn't exist yet
+    if not os.path.exists("./%s" % folder_name):
+        try:
+            os.makedirs("./%s" % folder_name)
+            print "Created output folder /%s" % folder_name
+        except OSError as err:
+            print("Unable to create folder /%s" % folder_name)
+            exists_error = re.search("exists", str(err))
+            if exists_error: # in theory we should never trigger this
+                print("Reason: Folder already exists.")
+            perms_error = re.search("denied", str(err))
+            if perms_error:
+                print("Reason: Insufficient permissions.")
+            if not exists_error and not perms_error:
+                print("Encountered error while creating output folder:")
+                print err
 
 # Verifies correct format of IP xxx.xxx.xxx.xxx
 def ipCheck(inputIP):
