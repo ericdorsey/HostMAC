@@ -5,6 +5,12 @@ import csv
 import sys
 import re
 
+# Override builtin: raw_input was renamed to input in python3 (PEP 3111)
+try:
+    input = raw_input
+except NameError:
+    pass
+
 # Creates the /output directory
 def makeDir():
     try:
@@ -47,7 +53,7 @@ def titleCheck():
         pass
     if exists == False:
         makeDir()
-        myfile = open("./output/ip.csv", "ab+")
+        myfile = open("./output/ip.csv", "w")
         wr = csv.writer(myfile)
         titles = ["ip", "ping ms time", "hostname", "mac"]
         wr.writerow(titles)
@@ -94,11 +100,11 @@ def getMac(ip):
     return item
 
 def getOne(ip):
-    print
+    print('\n')
     try:
-        myfile = open("./output/ip.csv", "ab+")
-    except IOError as (errno, strerror):
-        print "Could not open /output/ip.csv: I/O error({0}): {1}".format(errno, strerror)
+        myfile = open("./output/ip.csv", "a")
+    except IOError as e:
+        print("Could not open /output/ip.csv: I/O error({0}): {1}".format(e.errno, e.strerror))
         sys.exit()
     wr = csv.writer(myfile)
     ping = getPing_msResponse(ip)
@@ -106,14 +112,14 @@ def getOne(ip):
     mac = getMac(ip)
     csvOut = [ip, ping, name, mac]
     wr.writerow(csvOut)
-    print "%s %s %s %s" % (ip, ping, name, mac)
+    print("%s %s %s %s" % (ip, ping, name, mac))
     myfile.close()
 
 def getAll(ip):
     try:
-        myfile = open("./output/ip.csv", "ab+")
-    except IOError as (errno, strerror):
-        print "Could not open /output/ip.csv: I/O error({0}): {1}".format(errno, strerror)
+        myfile = open("./output/ip.csv", "a")
+    except IOError as e:
+        print("Could not open /output/ip.csv: I/O error({0}): {1}".format(e.errno, e.strerror))
         sys.exit()
     wr = csv.writer(myfile)
     firstThree = ip.split(".")[0] + "." + ip.split(".")[1] + "." + ip.split(".")[2] + "."
@@ -126,7 +132,7 @@ def getAll(ip):
         csvOut = [ip, ping, name, mac]
         wr.writerow(csvOut)
         last = str(int(last) + 1)
-        print "%s %s %s %s" % (ip, ping, name, mac)
+        print("%s %s %s %s" % (ip, ping, name, mac))
     myfile.close()
 
 
@@ -147,11 +153,11 @@ def detect_ip(ip_address=None):
             ip_address = s.getsockname()[0]
         except socket.error:
             print("Failed to detect IP of current host!")
-            choice = raw_input("(I)nput host IP manually, or (Q)uit?: ")
+            choice = input("(I)nput host IP manually, or (Q)uit?: ")
             if choice.upper() == "I":
                 while True:
                     if not ip_address or not ipCheck(ip_address):
-                        ip_address = raw_input("INPUT IP: ")
+                        ip_address = input("INPUT IP: ")
                     else:
                         break
             else:
@@ -163,33 +169,33 @@ def detect_ip(ip_address=None):
 
 while True:
     ip = detect_ip()
-    print
-    print "Detected IP: " + ip
-    print
-    print "1) Continue with detected IP (creates 254 entries)"
-    print "2) Enter another IP (creates one entry)"
-    print "3) Exit"
-    print
+    print('\n')
+    print("Detected IP: " + ip)
+    print('\n')
+    print("1) Continue with detected IP (creates 254 entries)")
+    print("2) Enter another IP (creates one entry)")
+    print("3) Exit")
+    print('\n')
     try:
-        answer = int(raw_input("Selection? "))
+        answer = int(input("Selection? "))
         if answer == 1:
-            print
+            print("\n")
             titleCheck()
             getAll(ip)
             sys.exit()
         elif answer == 2:
-            print
-            choiceIP = raw_input("Input IP: ")
+            print('\n')
+            choiceIP = input("Input IP: ")
             trueFalse = ipCheck(choiceIP)
             if trueFalse == True:
                 titleCheck()
                 getOne(choiceIP)
                 sys.exit()
             if trueFalse == False:
-                print
-                print "Invalid IP"
+                print("\n")
+                print("Invalid IP")
         elif answer == 3:
             sys.exit()
     except ValueError:
-        print
-        print "Invalid entry"
+        print("\n")
+        print("Invalid entry")
