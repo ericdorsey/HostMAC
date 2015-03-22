@@ -83,7 +83,7 @@ def getPing_msResponse(ip):
     ping = subprocess.Popen(pingText, shell=True, stdout=subprocess.PIPE)
     pingResult = ping.communicate()
     ping_found = re.search(r'time[=]?(\d*[\.]?\d*\s?ms)?', str(pingResult[0]))
-    if ping_found:
+    if ping_found and ping_found.group(1):
         ping_msResponse = ping_found.group(1)
     else:
         ping_msResponse = 'Host unreachable'
