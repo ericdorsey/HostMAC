@@ -128,6 +128,7 @@ def get_results(ip, folder_name, get_all=False):
         print("Could not open /{2}/ip.csv: "
               "I/O error({0}): {1}".format(e.errno, e.strerror, folder_name))
         sys.exit()
+    print("\nResults:")
     if get_all:
         first_three = re.match(r'((\d{,3}\.\d{,3}\.\d{,3})\.)?(\d{,3})', ip)
         for address in range(1, 255):
@@ -175,35 +176,33 @@ def detect_ip(ip_address=None):
     return ip_address
 
 
-while True:
+def main():
     ip = detect_ip()
-    print('\n')
-    print("Detected IP: " + ip)
-    print('\n')
-    print("1) Continue with detected IP (creates 254 entries)")
-    print("2) Enter another IP (creates one entry)")
-    print("3) Exit")
-    print('\n')
-    try:
-        answer = int(input("Selection? "))
-        if answer == 1:
-            print('\n')
-            titleCheck(folder_name)
-            get_results(ip, folder_name, get_all=True)
-            sys.exit()
-        elif answer == 2:
-            print('\n')
-            choiceIP = input("Input IP: ")
-            trueFalse = ipCheck(choiceIP)
-            if trueFalse == True:
+    answer = int()
+    while answer != 3:
+        print('\n\nDetected IP: %s\n'
+              '1) Continue with detected IP (creates 254 entries)\n'
+              '2) Enter another IP (creates one entry)\n'
+              '3) Exit' % ip)
+        try:
+            answer = int(input("Selection? "))
+            if answer == 1:
+                print('\n')
                 titleCheck(folder_name)
-                get_results(choiceIP, folder_name)
+                get_results(ip, folder_name, get_all=True)
+            elif answer == 2:
+                choiceIP = input("Input IP: ")
+                if ipCheck(choiceIP):
+                    titleCheck(folder_name)
+                    get_results(choiceIP, folder_name)
+                else:
+                    print("Invalid IP")
+            elif answer == 3:
                 sys.exit()
-            if trueFalse == False:
-                print("\n")
-                print("Invalid IP")
-        elif answer == 3:
-            sys.exit()
-    except ValueError:
-        print("\n")
-        print("Invalid entry")
+        except ValueError:
+            print("\n")
+            print("Invalid entry")
+
+
+if __name__ == "__main__":
+    main()
