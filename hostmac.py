@@ -15,7 +15,7 @@ except NameError:
 date_today = time.strftime("%Y-%m-%d")
 folder_name = "%s_output" % date_today
 
-# Creates the /output directory
+# Creates the output directory
 def make_dir(folder_name):
     # Only create output folder if it doesn't exist yet
     if not os.path.exists("./%s" % folder_name):
@@ -49,7 +49,7 @@ def nslooky(ip):
     try:
         output = socket.gethostbyaddr(ip)
         return output[0]
-    except:
+    except Exception as err:
         if sys.platform == 'darwin': # OSX
             output = subprocess.Popen("smbutil status %s | grep Server" % ip, shell=True, stdout=subprocess.PIPE)
             output = output.communicate()
@@ -58,9 +58,21 @@ def nslooky(ip):
                 return output
             output = output[0].split(' ')[1].strip()
             return output
+        not_found_error = re.search("not found", str(err))
+        if not_found_error: # Win, catch [Errno 11004] host not found
+            output = "No hostname found"
         else:
             output = "No hostname found"
-            return output
+        return output
+
+# Returns name of pinged host
+def getName(ip):
+    try:
+        name = nslooky(ip)
+    except Exception as err: # We shouldn't ever hit this, should catch this in nslooky()
+        name = "Gen. except error in getName()"
+    return name
+
 
 # Creates titles (headers) in .csv output file
 def titleCheck(folder_name):
@@ -88,14 +100,6 @@ def getPing_msResponse(ip):
     else:
         ping_msResponse = 'Host unreachable'
     return ping_msResponse
-
-# Returns name of pinged host
-def getName(ip):
-    try:
-        name = nslooky(ip)
-    except:
-        name = "Gen. except error in getName()"
-    return name
 
 # Given an IP, returns MAC results
 def getMac(ip):
@@ -161,24 +165,22 @@ def detect_ip(ip_address=None):
     """
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     try:
-        s.connect(('1.2.3.4', 0))
+        #s.connect(('1.2.3.4', 0))
+        #ip_address = s.getsockname()[0]
+        # OSX doesn't like port 0, use Google public DNS and port 80
+        s.connect(('8.8.8.8', 80))
         ip_address = s.getsockname()[0]
     except socket.error:
-        try:
-            # OSX doesn't like port 0, use Google public DNS and port 80
-            s.connect(('8.8.8.8', 80))
-            ip_address = s.getsockname()[0]
-        except socket.error:
-            print("Failed to detect IP of current host!")
-            choice = input("(I)nput host IP manually, or (Q)uit?: ")
-            if choice.upper() == "I":
-                while True:
-                    if not ip_address or not ipCheck(ip_address):
-                        ip_address = input("INPUT IP: ")
-                    else:
-                        break
-            else:
-                sys.exit("Quitting..")
+        print("Failed to detect IP of current host!")
+        choice = input("(I)nput host IP manually, or (Q)uit?: ")
+        if choice.upper() == "I":
+            while True:
+                if not ip_address or not ipCheck(ip_address):
+                    ip_address = input("INPUT IP: ")
+                else:
+                    break
+        else:
+            sys.exit("Quitting..")
     finally:
         s.close()
     return ip_address
