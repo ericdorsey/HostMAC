@@ -83,20 +83,14 @@ def getMac(ip):
         return arp
     if os.name == 'nt':  # Windows
         arpResult = subprocArp("arp -a %s" % ip)
-        find_mac = re.search(r'[\b\s]*(([0-9A-F]{2}[:-]){5}([0-9A-F]{2}))[\b\s]*',
-                             str(arpResult[0].upper()))
-        if find_mac:
-            item = find_mac.group(1).replace("-", ":")
-        else:
-            item = 'No MAC addr. found'
-    if os.name == 'posix': # *nix or OSX
+    if os.name == 'posix':  # *nix or OSX
         arpResult = subprocArp("arp -a | grep -w %s" % ip)
-        find_mac = re.search(r'[\b\s]*(([0-9A-F]{2}[:-]){5}([0-9A-F]{2}))[\b\s]*',
-                             str(arpResult[0].upper()))
-        if find_mac:
-            item = find_mac.group(1)
-        else:
-            item = 'No MAC addr. found'
+    find_mac = re.search(r'[\b\s]*(([0-9A-F]{2}[:-]){5}([0-9A-F]{2}))[\b\s]*',
+                         str(arpResult[0].upper()))
+    if find_mac:
+        item = re.sub('-', ':', find_mac.group(1))
+    else:
+        item = 'No MAC addr. found'
     return item
 
 def getOne(ip):
