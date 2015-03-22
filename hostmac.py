@@ -83,28 +83,14 @@ def getMac(ip):
         return arp
     if os.name == 'nt':  # Windows
         arpResult = subprocArp("arp -a %s" % ip)
-        try:
-            if arpResult[0].startswith("No ARP"):
-                item = "MAC not found, No ARP entry"
-            if arpResult[0].split("\n")[1].startswith("Interface:"):
-                item = arpResult[0].split("\n")[-2]
-                item = item.split()[1]
-                item = item.replace("-", ":").upper()
-            if arpResult[1] == None:
-                item = "ARP bad argument"
-        except IndexError:
-            if arpResult[1].startswith("ARP: bad argument"):
-                item = "ARP bad argument"
-        except:
-            item = "Gen. except error in getMac()"
-    if os.name == 'posix': # *nux or OSX
+    if os.name == 'posix':  # *nix or OSX
         arpResult = subprocArp("arp -a | grep -w %s" % ip)
-        find_mac = re.search(r'\s(([0-9A-F]{2}[:-]){5}([0-9A-F]{2}))?\s',
-                             arpResult[0].upper())
-        if find_mac:
-            item = find_mac.group(1)
-        else:
-            item = 'No MAC addr. found'
+    find_mac = re.search(r'[\b\s]*(([0-9A-F]{2}[:-]){5}([0-9A-F]{2}))[\b\s]*',
+                         str(arpResult[0].upper()))
+    if find_mac:
+        item = re.sub('-', ':', find_mac.group(1))
+    else:
+        item = 'No MAC addr. found'
     return item
 
 def getOne(ip):
