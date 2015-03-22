@@ -149,14 +149,13 @@ def get_results(ip, folder_name, get_all=False):
 
 def detect_ip(ip_address=None):
     """ Create a UDP socket connection to populate getsockname()
-    The address does not actually need to resolve ie: 1.2.3.4
+    The address does not actually need to resolve ie:
+    Google DNS 8.8.8.8 used here
     :param ip_address:
     :return:
     """
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     try:
-        #s.connect(('1.2.3.4', 0))
-        #ip_address = s.getsockname()[0]
         # OSX doesn't like port 0, use Google public DNS and port 80
         s.connect(('8.8.8.8', 80))
         ip_address = s.getsockname()[0]
