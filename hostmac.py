@@ -4,6 +4,7 @@ import subprocess
 import csv
 import sys
 import re
+import time
 
 # Override builtin: raw_input was renamed to input in python3 (PEP 3111)
 try:
@@ -11,12 +12,27 @@ try:
 except NameError:
     pass
 
+date_today = time.strftime("%Y-%m-%d")
+folder_name = "%s_output" % date_today
+
 # Creates the /output directory
-def makeDir():
-    try:
-        os.makedirs("./output")
-    except OSError:
-        pass
+def make_dir(folder_name):
+    # Only create output folder if it doesn't exist yet
+    if not os.path.exists("./%s" % folder_name):
+        try:
+            os.makedirs("./%s" % folder_name)
+            print("Created output folder /%s" % folder_name)
+        except OSError as err:
+            print("Unable to create folder /%s" % folder_name)
+            exists_error = re.search("exists", str(err))
+            if exists_error: # in theory we should never trigger this
+                print("Reason: Folder already exists.")
+            perms_error = re.search("denied", str(err))
+            if perms_error:
+                print("Reason: Insufficient permissions.")
+            if not exists_error and not perms_error:
+                print("Encountered error while creating output folder:")
+                print(err)
 
 # Verifies correct format of IP xxx.xxx.xxx.xxx
 def ipCheck(inputIP):
@@ -47,13 +63,13 @@ def nslooky(ip):
             return output
 
 # Creates titles (headers) in .csv output file
-def titleCheck():
-    exists = os.path.exists(r"./output/ip.csv")
+def titleCheck(folder_name):
+    exists = os.path.exists(r"./%s/ip.csv" % folder_name)
     if exists == True:
         pass
     if exists == False:
-        makeDir()
-        myfile = open("./output/ip.csv", "w")
+        make_dir(folder_name)
+        myfile = open("./%s/ip.csv" % folder_name, "w")
         wr = csv.writer(myfile)
         titles = ["ip", "ping ms time", "hostname", "mac"]
         wr.writerow(titles)
@@ -99,12 +115,13 @@ def getMac(ip):
         item = 'No MAC addr. found'
     return item
 
-def getOne(ip):
+
+def getOne(ip, folder_name):
     print('\n')
     try:
-        myfile = open("./output/ip.csv", "a")
+        myfile = open("./%s/ip.csv" % folder_name, "a")
     except IOError as e:
-        print("Could not open /output/ip.csv: I/O error({0}): {1}".format(e.errno, e.strerror))
+        print("Could not open /{2}/ip.csv: I/O error({0}): {1}".format(e.errno, e.strerror, folder_name))
         sys.exit()
     wr = csv.writer(myfile)
     ping = getPing_msResponse(ip)
@@ -115,11 +132,11 @@ def getOne(ip):
     print("%s %s %s %s" % (ip, ping, name, mac))
     myfile.close()
 
-def getAll(ip):
+def getAll(ip, folder_name):
     try:
-        myfile = open("./output/ip.csv", "a")
+        myfile = open("./%s/ip.csv" % folder_name, "a")
     except IOError as e:
-        print("Could not open /output/ip.csv: I/O error({0}): {1}".format(e.errno, e.strerror))
+        print("Could not open /{2}/ip.csv: I/O error({0}): {1}".format(e.errno, e.strerror, folder_name))
         sys.exit()
     wr = csv.writer(myfile)
     firstThree = ip.split(".")[0] + "." + ip.split(".")[1] + "." + ip.split(".")[2] + "."
@@ -179,17 +196,17 @@ while True:
     try:
         answer = int(input("Selection? "))
         if answer == 1:
-            print("\n")
-            titleCheck()
-            getAll(ip)
+            print('\n')
+            titleCheck(folder_name)
+            getAll(ip, folder_name)
             sys.exit()
         elif answer == 2:
             print('\n')
             choiceIP = input("Input IP: ")
             trueFalse = ipCheck(choiceIP)
             if trueFalse == True:
-                titleCheck()
-                getOne(choiceIP)
+                titleCheck(folder_name)
+                getOne(choiceIP, folder_name)
                 sys.exit()
             if trueFalse == False:
                 print("\n")
