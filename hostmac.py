@@ -12,8 +12,34 @@ try:
 except NameError:
     pass
 
-date_today = time.strftime("%Y-%m-%d")
-folder_name = "%s_output" % date_today
+
+def create_output_folder_name():
+    """
+    Returns the output folder name in format YYYY-MM-DD_output
+    :return:
+    """
+    date_today = time.strftime("%Y-%m-%d")
+    folder_name = "%s_output" % date_today
+    return folder_name
+
+
+def create_csv_file_name():
+    """
+    Returns the CSV file name in format Hr_Min_{AM/PM}.csv
+    :return:
+    """
+    time_now = time.strftime("%I_%M_%p")
+    csv_file_name = "%s.csv" % time_now
+    if csv_file_name[0] == "0": # strip leading zero off
+        csv_file_name = csv_file_name.lstrip('0')
+    return csv_file_name
+
+# Create the output folder name
+folder_name = create_output_folder_name()
+
+# Create the CSV file name
+csv_file_name = create_csv_file_name()
+
 
 # Creates the output directory
 def make_dir(folder_name):
@@ -75,13 +101,13 @@ def getName(ip):
 
 
 # Creates titles (headers) in .csv output file
-def titleCheck(folder_name):
-    exists = os.path.exists(r"./%s/ip.csv" % folder_name)
+def titleCheck(folder_name, csv_file_name):
+    exists = os.path.exists(r"./%s/%s" % (folder_name, csv_file_name))
     if exists == True:
         pass
     if exists == False:
         make_dir(folder_name)
-        myfile = open("./%s/ip.csv" % folder_name, "w")
+        myfile = open("./%s/%s" % (folder_name, csv_file_name), "w")
         wr = csv.writer(myfile)
         titles = ["ip", "ping ms time", "hostname", "mac"]
         wr.writerow(titles)
@@ -120,13 +146,13 @@ def getMac(ip):
     return item
 
 
-def get_results(ip, folder_name, get_all=False):
+def get_results(ip, folder_name, csv_file_name, get_all=False):
     try:
-        myfile = open("./%s/ip.csv" % folder_name, "a")
+        myfile = open("./%s/%s" % (folder_name, csv_file_name), "a")
         wr = csv.writer(myfile)
     except IOError as e:
-        print("Could not open /{2}/ip.csv: "
-              "I/O error({0}): {1}".format(e.errno, e.strerror, folder_name))
+        print("Could not open /{2}/{3}: "
+              "I/O error({0}): {1}".format(e.errno, e.strerror, folder_name, csv_file_name))
         sys.exit()
     print("\nResults:")
     if get_all:
@@ -169,7 +195,7 @@ def detect_ip(ip_address=None):
                 else:
                     break
         else:
-            sys.exit("Quitting..")
+            sys.exit("\nQuitting..")
     finally:
         s.close()
     return ip_address
@@ -187,13 +213,13 @@ def main():
             answer = int(input("Selection? "))
             if answer == 1:
                 print('\n')
-                titleCheck(folder_name)
-                get_results(ip, folder_name, get_all=True)
+                titleCheck(folder_name, csv_file_name)
+                get_results(ip, folder_name, csv_file_name, get_all=True)
             elif answer == 2:
                 choiceIP = input("Input IP: ")
                 if ipCheck(choiceIP):
-                    titleCheck(folder_name)
-                    get_results(choiceIP, folder_name)
+                    titleCheck(folder_name, csv_file_name)
+                    get_results(choiceIP, folder_name, csv_file_name)
                 else:
                     print("Invalid IP")
             elif answer == 3:
