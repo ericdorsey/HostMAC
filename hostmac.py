@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import socket
 import os
 import subprocess
@@ -5,6 +6,7 @@ import csv
 import sys
 import re
 import time
+import argparse
 
 # Override builtin: raw_input was renamed to input in python3 (PEP 3111)
 try:
@@ -146,31 +148,36 @@ def getMac(ip):
     return item
 
 
-def get_results(ip, folder_name, csv_file_name, get_all=False):
-    try:
-        myfile = open("./%s/%s" % (folder_name, csv_file_name), "a")
-        wr = csv.writer(myfile)
-    except IOError as e:
-        print("Could not open /{2}/{3}: "
-              "I/O error({0}): {1}".format(e.errno, e.strerror, folder_name, csv_file_name))
-        sys.exit()
+def get_results(ip, folder_name, csv_file_name,
+                start=1, end=255, get_all=False, csv_out=False):
+    if csv_out:
+        try:
+            myfile = open("./%s/%s" % (folder_name, csv_file_name), "a")
+            wr = csv.writer(myfile)
+        except IOError as e:
+            print("Could not open /{2}/{3}: I/O error({0}): {1}".format(
+                  e.errno, e.strerror, folder_name, csv_file_name))
+            sys.exit()
     print("\nResults:")
     if get_all:
         first_three = re.match(r'((\d{,3}\.\d{,3}\.\d{,3})\.)?(\d{,3})', ip)
-        for address in range(1, 255):
+        for address in range(int(start), int(end)):
             ip = first_three.group(1) + str(address)
             ping = getPing_msResponse(ip)
             name = getName(ip)
             mac = getMac(ip)
-            wr.writerow([ip, ping, name, mac])
+            if csv_out:
+                wr.writerow([ip, ping, name, mac])
             print("%s %s %s %s" % (ip, ping, name, mac))
     else:
         ping = getPing_msResponse(ip)
         name = getName(ip)
         mac = getMac(ip)
-        wr.writerow([ip, ping, name, mac])
+        if csv_out:
+            wr.writerow([ip, ping, name, mac])
         print("%s %s %s %s" % (ip, ping, name, mac))
-    myfile.close()
+    if csv_out:
+        myfile.close()
 
 
 def detect_ip(ip_address=None):
@@ -201,25 +208,36 @@ def detect_ip(ip_address=None):
     return ip_address
 
 
-def main():
-    ip = detect_ip()
+def main(ip=None, start=1, end=255, get_all=False, csv_out=False):
     answer = int()
+    ip_range = sorted([int(start), int(end)])  # ensure range from low to high
     while answer != 3:
-        print('\n\nDetected IP: %s\n'
-              '1) Continue with detected IP (creates 254 entries)\n'
+        print('\n\nQuery based on IP: %s\n'
+              '1) Continue with detected IP (entries for x.x.x.%s-%s)\n'
               '2) Enter another IP (creates one entry)\n'
-              '3) Exit' % ip)
+              '3) Exit' % (ip, ip_range[0], int(ip_range[1]) - 1))
         try:
-            answer = int(input("Selection? "))
+            if get_all:
+                answer = 1
+            else:
+                answer = int(input("Selection? "))
             if answer == 1:
+                get_all = True
                 print('\n')
-                titleCheck(folder_name, csv_file_name)
-                get_results(ip, folder_name, csv_file_name, get_all=True)
+                if csv_out:
+                    titleCheck(folder_name, csv_file_name)
+                get_results(ip, folder_name, csv_file_name,
+                            end=ip_range[1], start=ip_range[0],
+                            get_all=get_all, csv_out=csv_out)
+                get_all = False  # Clear the get_all flag to break loop
             elif answer == 2:
                 choiceIP = input("Input IP: ")
                 if ipCheck(choiceIP):
-                    titleCheck(folder_name, csv_file_name)
-                    get_results(choiceIP, folder_name, csv_file_name)
+                    if csv_out:
+                        titleCheck(folder_name, csv_file_name)
+                    get_results(choiceIP, folder_name, csv_file_name,
+                                start=ip_range[0], end=ip_range[1],
+                                get_all=get_all, csv_out=csv_out)
                 else:
                     print("Invalid IP")
             elif answer == 3:
@@ -230,4 +248,20 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(description="HostMAC")
+    parser.add_argument('-csv', help='log output to csv', action='store_true',
+                        required=False)
+    parser.add_argument('-ip', default=detect_ip(),
+                        help='specify ip, default: current ip', required=False)
+    parser.add_argument('-all', help='check range 1-254', action='store_true',
+                        required=False)
+    parser.add_argument('-start', default=1,
+                        help='start of range', required=False)
+    parser.add_argument('-end', default=255,
+                        help='end of range', required=False)
+    args = parser.parse_args()
+    try:
+        main(ip=args.ip, start=args.start, end=args.end,
+             get_all=args.all, csv_out=args.csv)
+    except KeyboardInterrupt:
+        print("\nCanceled by user.. Exiting.")

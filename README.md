@@ -13,6 +13,11 @@ When run, user has two available options:
 
 * Results are written to ```/YYYY-MM-DD_output/ip.csv```
 
+### Help
+```
+$ ./hostmac.py -h
+```
+
 ___
 
 ### Tested in:
@@ -21,10 +26,10 @@ OS | Python Version
 --- | ---
 Fedora 21 | 2.7.8
 Fedora 21 | 3.4.1
-CentOS 6.6 | 2.6.6
 CentoOS 7.0 | 2.7.5
 Ubuntu 14.10 | 2.7.8
-Windows 8 | 2.7.9 
+Windows 8 | 2.7.9
+Windows 8 | 3.4.3
 Windows 7 | 2.7.2
 Ubuntu 14.04.2 LTS | 2.7.6
 OSX 10.10.2 | 2.7.6
