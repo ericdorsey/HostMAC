@@ -43,6 +43,22 @@ folder_name = create_output_folder_name()
 csv_file_name = create_csv_file_name()
 
 
+def detect_os():
+    """
+    Detects OS of system.
+    :return:
+    """
+    if os.name == 'nt':  # Windows
+        detected_os = "win"
+    if os.name == 'posix':  # posix
+        detected_os = "posix"
+    # check for OSX last because it also shows up as posix in os.name
+    if sys.platform == 'darwin':  # OSX
+        detected_os = "osx"
+    return detected_os
+
+detected_os = detect_os()
+
 # Creates the output directory
 def make_dir(folder_name):
     # Only create output folder if it doesn't exist yet
@@ -73,12 +89,12 @@ def ipCheck(inputIP):
         return False
 
 # Given an IP, returns hostname
-def nslooky(ip):
+def nslooky(ip, detected_os):
     try:
         output = socket.gethostbyaddr(ip)
         return output[0]
     except Exception as err:
-        if sys.platform == 'darwin': # OSX
+        if detected_os == 'osx':
             output = subprocess.Popen("smbutil status %s | grep Server" % ip, shell=True, stdout=subprocess.PIPE)
             output = output.communicate()
             if output[0] == "":
@@ -96,7 +112,7 @@ def nslooky(ip):
 # Returns name of pinged host
 def getName(ip):
     try:
-        name = nslooky(ip)
+        name = nslooky(ip, detected_os)
     except Exception as err: # We shouldn't ever hit this, should catch this in nslooky()
         name = "Gen. except error in getName()"
     return name
@@ -116,9 +132,9 @@ def titleCheck(folder_name, csv_file_name):
 
 # Returns ping ms response time of pinged host
 def getPing_msResponse(ip):
-    if os.name == 'nt':  # Windows
+    if detected_os == "win":
         pingText = "ping -n 1 " + ip
-    elif os.name =='posix':  # *nix or OSX
+    if detected_os == "posix" or detected_os == "osx":
         pingText = "ping -c 1 " + ip
     ping = subprocess.Popen(pingText, shell=True, stdout=subprocess.PIPE)
     pingResult = ping.communicate()
@@ -130,14 +146,14 @@ def getPing_msResponse(ip):
     return ping_msResponse
 
 # Given an IP, returns MAC results
-def getMac(ip):
+def getMac(ip, detected_os):
     def subprocArp(arpText):
         arp = subprocess.Popen(arpText, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         arp = arp.communicate()
         return arp
-    if os.name == 'nt':  # Windows
+    if detected_os == "win":
         arpResult = subprocArp("arp -a %s" % ip)
-    if os.name == 'posix':  # *nix or OSX
+    if detected_os == "posix" or detected_os == "osx":
         arpResult = subprocArp("arp -a | grep -w %s" % ip)
     find_mac = re.search(r'[\b\s]*(([0-9A-F]{2}[:-]){5}([0-9A-F]{2}))[\b\s]*',
                          str(arpResult[0].upper()))
@@ -167,14 +183,14 @@ def get_results(ip, folder_name, csv_file_name,
             ip = first_three.group(1) + str(address)
             ping = getPing_msResponse(ip)
             name = getName(ip)
-            mac = getMac(ip)
+            mac = getMac(ip, detected_os)
             if csv_out:
                 wr.writerow([ip, ping, name, mac])
             print("%s %s %s %s" % (ip, ping, name, mac))
     else:
         ping = getPing_msResponse(ip)
         name = getName(ip)
-        mac = getMac(ip)
+        mac = getMac(ip, detected_os)
         if csv_out:
             wr.writerow([ip, ping, name, mac])
         print("%s %s %s %s" % (ip, ping, name, mac))
@@ -191,7 +207,6 @@ def detect_ip(ip_address=None):
     """
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     try:
-        # OSX doesn't like port 0, use Google public DNS and port 80
         s.connect(('8.8.8.8', 80))
         ip_address = s.getsockname()[0]
     except socket.error:
