@@ -11,13 +11,18 @@ When run, user has two available options:
   * IP Address, ping ```ms``` response time, Hostname and MAC address
  
 
-* Results are written to ```/YYYY-MM-DD_output/ip.csv```
+Results are written to ```/YYYY-MM-DD_output/HH_mm_{AM/PM}.csv```
 
 ### Help
+Linux / OSX:
 ```
 $ ./hostmac.py -h
 ```
 
+Windows:
+```
+C:\>python hostmac.py -h
+```
 ___
 
 ### Tested in:
