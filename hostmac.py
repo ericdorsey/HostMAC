@@ -94,7 +94,6 @@ def nslooky(ip, detected_os):
         output = socket.gethostbyaddr(ip)
         return output[0]
     except Exception as err:
-        #if sys.platform == 'darwin': # OSX
         if detected_os == 'osx':
             output = subprocess.Popen("smbutil status %s | grep Server" % ip, shell=True, stdout=subprocess.PIPE)
             output = output.communicate()
@@ -134,10 +133,8 @@ def titleCheck(folder_name, csv_file_name):
 # Returns ping ms response time of pinged host
 def getPing_msResponse(ip):
     if detected_os == "win":
-    #if os.name == 'nt':  # Windows
         pingText = "ping -n 1 " + ip
     if detected_os == "posix" or detected_os == "osx":
-    #elif os.name =='posix':  # *nix or OSX
         pingText = "ping -c 1 " + ip
     ping = subprocess.Popen(pingText, shell=True, stdout=subprocess.PIPE)
     pingResult = ping.communicate()
@@ -154,10 +151,8 @@ def getMac(ip, detected_os):
         arp = subprocess.Popen(arpText, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         arp = arp.communicate()
         return arp
-    #if os.name == 'nt':  # Windows
     if detected_os == "win":
         arpResult = subprocArp("arp -a %s" % ip)
-    #if os.name == 'posix':  # *nix or OSX
     if detected_os == "posix" or detected_os == "osx":
         arpResult = subprocArp("arp -a | grep -w %s" % ip)
     find_mac = re.search(r'[\b\s]*(([0-9A-F]{2}[:-]){5}([0-9A-F]{2}))[\b\s]*',
@@ -212,7 +207,6 @@ def detect_ip(ip_address=None):
     """
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     try:
-        # OSX doesn't like port 0, use Google public DNS and port 80
         s.connect(('8.8.8.8', 80))
         ip_address = s.getsockname()[0]
     except socket.error:
@@ -271,7 +265,6 @@ def main(ip=None, start=1, end=255, get_all=False, csv_out=False):
 
 
 if __name__ == "__main__":
-    print(detected_os)  # To be removed after testing
     parser = argparse.ArgumentParser(description="HostMAC")
     parser.add_argument('-csv', help='log output to csv', action='store_true',
                         required=False)
