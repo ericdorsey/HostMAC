@@ -161,6 +161,8 @@ def get_results(ip, folder_name, csv_file_name,
     print("\nResults:")
     if get_all:
         first_three = re.match(r'((\d{,3}\.\d{,3}\.\d{,3})\.)?(\d{,3})', ip)
+        if int(end) <= 254:
+            end += 1
         for address in range(int(start), int(end)):
             ip = first_three.group(1) + str(address)
             ping = getPing_msResponse(ip)
@@ -215,7 +217,7 @@ def main(ip=None, start=1, end=255, get_all=False, csv_out=False):
         print('\n\nQuery based on IP: %s\n'
               '1) Continue with detected IP (entries for x.x.x.%s-%s)\n'
               '2) Enter another IP (creates one entry)\n'
-              '3) Exit' % (ip, ip_range[0], int(ip_range[1]) - 1))
+              '3) Exit' % (ip, ip_range[0], int(ip_range[1])))
         try:
             if get_all:
                 answer = 1
@@ -255,10 +257,10 @@ if __name__ == "__main__":
                         help='specify ip, default: current ip', required=False)
     parser.add_argument('-all', help='check range 1-254', action='store_true',
                         required=False)
-    parser.add_argument('-start', default=1,
-                        help='start of range', required=False)
-    parser.add_argument('-end', default=255,
-                        help='end of range', required=False)
+    parser.add_argument('-start', default=1, type=int, choices=range(1, 254),
+                        metavar='', help='start of range', required=False)
+    parser.add_argument('-end', default=255, type=int, choices=range(2, 255),
+                        metavar='', help='end of range', required=False)
     args = parser.parse_args()
     try:
         main(ip=args.ip, start=args.start, end=args.end,
