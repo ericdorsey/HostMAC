@@ -45,17 +45,24 @@ csv_file_name = create_csv_file_name()
 
 def detect_os():
     """
-    Detects OS of system.
-    :return:
+    Detects OS of system and sets os commands for use in various functions.
+    :return: dict()
     """
+    os_info = {}
     if os.name == 'nt':  # Windows
-        detected_os = "win"
+        os_info['os'] = "win"
+        os_info['arp_cmd'] = "arp -a {ip}"
+        os_info['ping_cmd'] = "ping -n 1 {ip}"
     if os.name == 'posix':  # posix
-        detected_os = "posix"
+        os_info['os'] = "posix"
+        os_info['arp_cmd'] = "arp -a | grep -w {ip}"
+        os_info['ping_cmd'] = "ping -c 1 {ip}"
     # check for OSX last because it also shows up as posix in os.name
     if sys.platform == 'darwin':  # OSX
-        detected_os = "osx"
-    return detected_os
+        os_info['os'] = "osx"
+        os_info['arp_cmd'] = "arp -a | grep -w {ip}"
+        os_info['ping_cmd'] = "ping -c 1 {ip}"
+    return os_info
 
 detected_os = detect_os()
 
@@ -94,7 +101,7 @@ def nslooky(ip, detected_os):
         output = socket.gethostbyaddr(ip)
         return output[0]
     except Exception as err:
-        if detected_os == 'osx':
+        if detected_os['os'] == 'osx':
             output = subprocess.Popen("smbutil status %s | grep Server" % ip, shell=True, stdout=subprocess.PIPE)
             output = output.communicate()
             if output[0] == "":
@@ -131,12 +138,8 @@ def titleCheck(folder_name, csv_file_name):
         wr.writerow(titles)
 
 # Returns ping ms response time of pinged host
-def getPing_msResponse(ip):
-    if detected_os == "win":
-        pingText = "ping -n 1 " + ip
-    if detected_os == "posix" or detected_os == "osx":
-        pingText = "ping -c 1 " + ip
-    ping = subprocess.Popen(pingText, shell=True, stdout=subprocess.PIPE)
+def getPing_msResponse(ip, detected_os):
+    ping = subprocess.Popen(detected_os['ping_cmd'].format(ip=ip), shell=True, stdout=subprocess.PIPE)
     pingResult = ping.communicate()
     ping_found = re.search(r'time[=<]?(\d*[\.]?\d*\s?ms)?', str(pingResult[0]))
     if ping_found and ping_found.group(1):
@@ -151,10 +154,7 @@ def getMac(ip, detected_os):
         arp = subprocess.Popen(arpText, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         arp = arp.communicate()
         return arp
-    if detected_os == "win":
-        arpResult = subprocArp("arp -a %s" % ip)
-    if detected_os == "posix" or detected_os == "osx":
-        arpResult = subprocArp("arp -a | grep -w %s" % ip)
+    arpResult = subprocArp(detected_os['arp_cmd'].format(ip=ip))
     find_mac = re.search(r'[\b\s]*(([0-9A-F]{2}[:-]){5}([0-9A-F]{2}))[\b\s]*',
                          str(arpResult[0].upper()))
     if find_mac:
@@ -181,14 +181,14 @@ def get_results(ip, folder_name, csv_file_name,
             end += 1
         for address in range(int(start), int(end)):
             ip = first_three.group(1) + str(address)
-            ping = getPing_msResponse(ip)
+            ping = getPing_msResponse(ip, detected_os)
             name = getName(ip)
             mac = getMac(ip, detected_os)
             if csv_out:
                 wr.writerow([ip, ping, name, mac])
             print("%s %s %s %s" % (ip, ping, name, mac))
     else:
-        ping = getPing_msResponse(ip)
+        ping = getPing_msResponse(ip, detected_os)
         name = getName(ip)
         mac = getMac(ip, detected_os)
         if csv_out:
