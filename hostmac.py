@@ -7,6 +7,7 @@ import sys
 import re
 import time
 import argparse
+import shlex
 
 # Override builtin: raw_input was renamed to input in python3 (PEP 3111)
 try:
@@ -66,6 +67,45 @@ def detect_os():
 
 detected_os = detect_os()
 
+def subproc_pipe_runner(ip, command):
+    """
+    Takes an ip and a "raw" shell input command. Splits it on "|" if present,
+    and runs it without dependency on shell=True.
+    :param command:
+    :return:
+    """
+    command = command.replace("{ip}", "{0}")
+
+    #print(ip)
+    #print(command)
+    command = command.format(ip)
+    #print(command)
+
+    # get both piped and unpiped commands into the same format (ie, a list with one value)
+    if "|" in command:
+        new_command = command.split("|")
+    else:
+        new_command = []
+        new_command.append(command)
+
+    #print(new_command)
+
+    if len(new_command) == 1:
+        process_one = subprocess.Popen(shlex.split("{0}".format(new_command[0])), stdout=subprocess.PIPE)
+        #print("process one: ".format(process_one))
+        #process_one.stdout.close()
+        output = process_one.communicate()
+        #print(output)
+        return output
+    if len(new_command) == 2:
+        process_one = subprocess.Popen(shlex.split("{0}".format(new_command[0])), stdout=subprocess.PIPE)
+        process_two = subprocess.Popen(shlex.split("{0}".format(new_command[1])), stdin=process_one.stdout, stdout=subprocess.PIPE)
+        process_one.stdout.close()
+        output = process_two.communicate()
+        #print(output)
+        return output
+
+
 # Creates the output directory
 def make_dir(folder_name):
     # Only create output folder if it doesn't exist yet
@@ -102,8 +142,11 @@ def nslooky(ip, detected_os):
         return output[0]
     except Exception as err:
         if detected_os['os'] == 'osx':
-            output = subprocess.Popen("smbutil status %s | grep Server" % ip, shell=True, stdout=subprocess.PIPE)
-            output = output.communicate()
+            #output = subprocess.Popen("smbutil status %s | grep Server" % ip, shell=True, stdout=subprocess.PIPE)
+            #output = output.communicate()
+
+            output = subproc_pipe_runner(ip, "smbutil status %s | grep Server" % ip)
+
             if output[0] == "":
                 output = "No hostname found"
                 return output
@@ -139,8 +182,9 @@ def titleCheck(folder_name, csv_file_name):
 
 # Returns ping ms response time of pinged host
 def getPing_msResponse(ip, detected_os):
-    ping = subprocess.Popen(detected_os['ping_cmd'].format(ip=ip), shell=True, stdout=subprocess.PIPE)
-    pingResult = ping.communicate()
+    #ping = subprocess.Popen(detected_os['ping_cmd'].format(ip=ip), shell=True, stdout=subprocess.PIPE)
+    pingResult = subproc_pipe_runner(ip, detected_os['ping_cmd'])
+    #pingResult = ping.communicate()
     ping_found = re.search(r'time[=<]?(\d*[\.]?\d*\s?ms)?', str(pingResult[0]))
     if ping_found and ping_found.group(1):
         ping_msResponse = ping_found.group(1)
@@ -150,11 +194,12 @@ def getPing_msResponse(ip, detected_os):
 
 # Given an IP, returns MAC results
 def getMac(ip, detected_os):
-    def subprocArp(arpText):
-        arp = subprocess.Popen(arpText, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        arp = arp.communicate()
-        return arp
-    arpResult = subprocArp(detected_os['arp_cmd'].format(ip=ip))
+    # def subprocArp(arpText):
+    #     arp = subprocess.Popen(arpText, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    #     arp = arp.communicate()
+    #     return arp
+    arpResult = subproc_pipe_runner(ip, detected_os['arp_cmd'])
+    #arpResult = subprocArp(detected_os['arp_cmd'].format(ip=ip))
     find_mac = re.search(r'[\b\s]*(([0-9A-F]{2}[:-]){5}([0-9A-F]{2}))[\b\s]*',
                          str(arpResult[0].upper()))
     if find_mac:
