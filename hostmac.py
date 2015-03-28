@@ -63,6 +63,7 @@ def detect_os():
         os_info['os'] = "osx"
         os_info['arp_cmd'] = "arp -a | grep -w {ip}"
         os_info['ping_cmd'] = "ping -c 1 {ip}"
+        os_info['smbutil'] = "smbutil status {ip} | grep Server"
     return os_info
 
 detected_os = detect_os()
@@ -136,7 +137,7 @@ def nslooky(ip, detected_os):
         return output[0]
     except Exception as err:
         if detected_os['os'] == 'osx':
-            output = subproc_pipe_runner(ip, "smbutil status %s | grep Server" % ip)
+            output = subproc_pipe_runner(ip, detected_os["smbutil"])
             if output[0] == "":
                 output = "No hostname found"
                 return output
