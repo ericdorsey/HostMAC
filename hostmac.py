@@ -7,6 +7,7 @@ import sys
 import re
 import time
 import argparse
+import shlex
 
 # Override builtin: raw_input was renamed to input in python3 (PEP 3111)
 try:
@@ -66,6 +67,37 @@ def detect_os():
 
 detected_os = detect_os()
 
+
+def subproc_pipe_runner(ip, command):
+    """
+    Takes an ip and a "raw" shell input command. Splits it on "|" if present,
+    and runs it without dependency on shell=True.
+    :param ip: The IP to run the command against
+    :param command: The shell command to interpret. Max one pipe ("|")
+    :return: string
+    """
+    command = command.replace("{ip}", "{0}")
+    command = command.format(ip)
+
+    # Get both piped and unpiped commands into the same format: a list with one value
+    if "|" in command:
+        new_command = command.split("|")
+    else:
+        new_command = []
+        new_command.append(command)
+
+    if len(new_command) == 1:
+        process_one = subprocess.Popen(shlex.split("{0}".format(new_command[0])), stdout=subprocess.PIPE)
+        output = process_one.communicate()
+        return output
+    if len(new_command) == 2:
+        process_one = subprocess.Popen(shlex.split("{0}".format(new_command[0])), stdout=subprocess.PIPE)
+        process_two = subprocess.Popen(shlex.split("{0}".format(new_command[1])), stdin=process_one.stdout, stdout=subprocess.PIPE)
+        process_one.stdout.close()
+        output = process_two.communicate()
+        return output
+
+
 # Creates the output directory
 def make_dir(folder_name):
     # Only create output folder if it doesn't exist yet
@@ -85,6 +117,7 @@ def make_dir(folder_name):
                 print("Encountered error while creating output folder:")
                 print(err)
 
+
 # Verifies correct format of IP xxx.xxx.xxx.xxx
 def ipCheck(inputIP):
     ipregex = '\\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.)' \
@@ -95,6 +128,7 @@ def ipCheck(inputIP):
     else:
         return False
 
+
 # Given an IP, returns hostname
 def nslooky(ip, detected_os):
     try:
@@ -102,19 +136,19 @@ def nslooky(ip, detected_os):
         return output[0]
     except Exception as err:
         if detected_os['os'] == 'osx':
-            output = subprocess.Popen("smbutil status %s | grep Server" % ip, shell=True, stdout=subprocess.PIPE)
-            output = output.communicate()
+            output = subproc_pipe_runner(ip, "smbutil status %s | grep Server" % ip)
             if output[0] == "":
                 output = "No hostname found"
                 return output
             output = output[0].split(' ')[1].strip()
             return output
         not_found_error = re.search("not found", str(err))
-        if not_found_error: # Win, catch [Errno 11004] host not found
+        if not_found_error: # Windows: catch [Errno 11004] host not found
             output = "No hostname found"
         else:
             output = "No hostname found"
         return output
+
 
 # Returns name of pinged host
 def getName(ip):
@@ -137,10 +171,10 @@ def titleCheck(folder_name, csv_file_name):
         titles = ["ip", "ping ms time", "hostname", "mac"]
         wr.writerow(titles)
 
+
 # Returns ping ms response time of pinged host
 def getPing_msResponse(ip, detected_os):
-    ping = subprocess.Popen(detected_os['ping_cmd'].format(ip=ip), shell=True, stdout=subprocess.PIPE)
-    pingResult = ping.communicate()
+    pingResult = subproc_pipe_runner(ip, detected_os['ping_cmd'])
     ping_found = re.search(r'time[=<]?(\d*[\.]?\d*\s?ms)?', str(pingResult[0]))
     if ping_found and ping_found.group(1):
         ping_msResponse = ping_found.group(1)
@@ -150,11 +184,7 @@ def getPing_msResponse(ip, detected_os):
 
 # Given an IP, returns MAC results
 def getMac(ip, detected_os):
-    def subprocArp(arpText):
-        arp = subprocess.Popen(arpText, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        arp = arp.communicate()
-        return arp
-    arpResult = subprocArp(detected_os['arp_cmd'].format(ip=ip))
+    arpResult = subproc_pipe_runner(ip, detected_os['arp_cmd'])
     find_mac = re.search(r'[\b\s]*(([0-9A-F]{2}[:-]){5}([0-9A-F]{2}))[\b\s]*',
                          str(arpResult[0].upper()))
     if find_mac:
