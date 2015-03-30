@@ -150,16 +150,6 @@ def nslooky(ip, detected_os):
             output = "No hostname found"
         return output
 
-
-# Returns name of pinged host
-def getName(ip):
-    try:
-        name = nslooky(ip, detected_os)
-    except Exception as err: # We shouldn't ever hit this, should catch this in nslooky()
-        name = "Gen. except error in getName()"
-    return name
-
-
 # Creates titles (headers) in .csv output file
 def titleCheck(folder_name, csv_file_name):
     exists = os.path.exists(r"./%s/%s" % (folder_name, csv_file_name))
@@ -213,14 +203,14 @@ def get_results(ip, folder_name, csv_file_name,
         for address in range(int(start), int(end)):
             ip = first_three.group(1) + str(address)
             ping = getPing_msResponse(ip, detected_os)
-            name = getName(ip)
+            name = nslooky(ip, detected_os)
             mac = getMac(ip, detected_os)
             if csv_out:
                 wr.writerow([ip, ping, name, mac])
             print("%s %s %s %s" % (ip, ping, name, mac))
     else:
         ping = getPing_msResponse(ip, detected_os)
-        name = getName(ip)
+        name = nslooky(ip, detected_os)
         mac = getMac(ip, detected_os)
         if csv_out:
             wr.writerow([ip, ping, name, mac])
