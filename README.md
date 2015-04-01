@@ -11,7 +11,7 @@ When run, user has two available options:
   * IP Address, ping ```ms``` response time, Hostname and MAC address
  
 
-Results are written to ```/YYYY-MM-DD_output/HH_mm_{AM/PM}.csv```
+Results are optionally written to ```/YYYY-MM-DD_output/HH_mm_{AM/PM}.csv```
 
 ### Help
 Linux / OSX:
@@ -41,7 +41,7 @@ OSX 10.10.2 | 2.7.6
 
 ### Limitations:
 
-IPv4 compatible only.    
+IPv4 compatible only. Cygwin not supported.  
 
 ___
 [![https://www.python.org/](https://www.python.org/static/community_logos/python-powered-w-100x40.png)](https://www.python.org/)
