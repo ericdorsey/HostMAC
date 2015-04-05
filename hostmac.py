@@ -277,16 +277,16 @@ def get_results(ip, folder_name, csv_file_name,
             end += 1
         for address in range(int(start), int(end)):
             ip = first_three.group(1) + str(address)
-            ping = getPing_msResponse(ip, detected_os)
+            ping = get_ping_ms_response(ip, detected_os)
             name = nslooky(ip, detected_os)
-            mac = getMac(ip, detected_os)
+            mac = get_mac(ip, detected_os)
             if csv_out:
                 wr.writerow([ip, ping, name, mac])
             print("{0} {1} {2} {3}".format(ip, ping, name, mac))
     else:
-        ping = getPing_msResponse(ip, detected_os)
+        ping = get_ping_ms_response(ip, detected_os)
         name = nslooky(ip, detected_os)
-        mac = getMac(ip, detected_os)
+        mac = get_mac(ip, detected_os)
         if csv_out:
             wr.writerow([ip, ping, name, mac])
         print("{0} {1} {2} {3}".format(ip, ping, name, mac))
@@ -380,9 +380,9 @@ if __name__ == "__main__":
                         help='specify ip, default: current ip', required=False)
     parser.add_argument('-all', help='check range 1-254', action='store_true',
                         required=False)
-    parser.add_argument('-start', default=1, type=int, choices=range(1, 254),
+    parser.add_argument('-start', '-s', default=1, type=int, choices=range(1, 254),
                         metavar='', help='start of range', required=False)
-    parser.add_argument('-end', default=255, type=int, choices=range(2, 255),
+    parser.add_argument('-end', '-e', default=255, type=int, choices=range(2, 255),
                         metavar='', help='end of range', required=False)
     args = parser.parse_args()
     try:
