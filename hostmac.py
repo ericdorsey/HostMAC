@@ -69,6 +69,7 @@ def detect_os():
         os_info['smbutil'] = "smbutil status {ip} | grep Server"
     return os_info
 
+# Set OS information
 detected_os = detect_os()
 
 
@@ -276,16 +277,16 @@ def get_results(ip, folder_name, csv_file_name,
             end += 1
         for address in range(int(start), int(end)):
             ip = first_three.group(1) + str(address)
-            ping = get_ping_ms_response(ip, detected_os)
-            name = get_name(ip)
-            mac = get_mac(ip, detected_os)
+            ping = getPing_msResponse(ip, detected_os)
+            name = nslooky(ip, detected_os)
+            mac = getMac(ip, detected_os)
             if csv_out:
                 wr.writerow([ip, ping, name, mac])
             print("{0} {1} {2} {3}".format(ip, ping, name, mac))
     else:
-        ping = get_ping_ms_response(ip, detected_os)
-        name = get_name(ip)
-        mac = get_mac(ip, detected_os)
+        ping = getPing_msResponse(ip, detected_os)
+        name = nslooky(ip, detected_os)
+        mac = getMac(ip, detected_os)
         if csv_out:
             wr.writerow([ip, ping, name, mac])
         print("{0} {1} {2} {3}".format(ip, ping, name, mac))
