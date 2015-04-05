@@ -373,17 +373,20 @@ def main(ip=None, start=1, end=255, get_all=False, csv_out=False):
 
 
 if __name__ == "__main__":
+    # metavar hack from :
+    # http://stackoverflow.com/questions/16968188/
+    # how-do-i-avoid-the-capital-placeholders-in-pythons-argparse-module
     parser = argparse.ArgumentParser(description="HostMAC")
-    parser.add_argument('-csv', help='log output to csv', action='store_true',
+    parser.add_argument('-c', '--csv', help='log output to csv', action='store_true',
                         required=False)
-    parser.add_argument('-ip', default=detect_ip(),
+    parser.add_argument('-i', '--ip', default=detect_ip(),
                         help='specify ip, default: current ip', required=False)
-    parser.add_argument('-all', help='check range 1-254', action='store_true',
+    parser.add_argument('-a', '--all', help='check range 1-254', action='store_true',
                         required=False)
-    parser.add_argument('-start', '-s', default=1, type=int, choices=range(1, 254),
-                        metavar='', help='start of range', required=False)
-    parser.add_argument('-end', '-e', default=255, type=int, choices=range(2, 255),
-                        metavar='', help='end of range', required=False)
+    parser.add_argument('-s', '--start', default=1, type=int, choices=range(1, 254),
+                        metavar='\b', help='start of range', required=False)
+    parser.add_argument('-e', '--end', default=255, type=int, choices=range(2, 255),
+                        metavar='\b', help='end of range', required=False)
     args = parser.parse_args()
     try:
         main(ip=args.ip, start=args.start, end=args.end,
