@@ -159,22 +159,30 @@ def nslooky(ip, detected_os):
     :param detected_os: dict()
     :return: string
     """
+    output_options = {
+        "nohost" : "No hostname found",
+        "unkhost" : "Unknown host"
+    }
     try:
         output = socket.gethostbyaddr(ip)
         return output[0]
     except Exception as err:
         if detected_os['os'] == 'osx':
             output = subproc_pipe_runner(ip, detected_os["smbutil"])
-            if output[0] == "":
-                output = "No hostname found"
+            output = output[0].decode('utf-8')  # Decode for Python3
+            if output == "":
+                output = output_options["nohost"]
                 return output
-            output = output[0].split(' ')[1].strip()
+            output = output.split(' ')[1].strip()
             return output
         not_found_error = re.search("not found", str(err))
-        if not_found_error:  # Windows: catch [Errno 11004] host not found
-            output = "No hostname found"
+        if not_found_error:  # Catch [Errno 11004] host not found
+            output = output_options["nohost"]
         else:
-            output = "No hostname found"
+            output = output_options["nohost"]
+        unknown_host_error = re.search("Unknown host", str(err))
+        if unknown_host_error:  # Catch [Errno 1] Unknown host
+            output = output_options["unkhost"]
         return output
 
 
@@ -220,13 +228,15 @@ def get_ping_ms_response(ip, detected_os):
     :param detected_os: dict()
     :return:
     """
-    pingResult = subproc_pipe_runner(ip, detected_os['ping_cmd'])
-    ping_found = re.search(r'time[=<]?(\d*[\.]?\d*\s?ms)?', str(pingResult[0]))
-    if ping_found and ping_found.group(1):
-        ping_msResponse = ping_found.group(1)
+    ping_result = subproc_pipe_runner(ip, detected_os['ping_cmd'])
+    ping_found = re.search(r'time[=<]?(\d*[\.]?\d*\s?ms)?', str(ping_result[0]))
+    if not ping_found:
+        ping_ms_response = 'Host unreachable'
+    elif ping_found and ping_found.group(1):
+        ping_ms_response = ping_found.group(1)
     else:
-        ping_msResponse = 'Host unreachable'
-    return ping_msResponse
+        ping_ms_response = 'Host unreachable'
+    return ping_ms_response
 
 
 def get_mac(ip, detected_os):
@@ -262,6 +272,8 @@ def get_results(ip, folder_name, csv_file_name,
     :param csv_out: boolean
     :return:
     """
+    def print_it(ip, ping, name, mac):
+        print("{0:<16} {1:<17} {2:<18} {3:<18}".format(ip, ping, name, mac))
     if csv_out:
         try:
             myfile = open("./%s/%s" % (folder_name, csv_file_name), "a")
@@ -282,14 +294,14 @@ def get_results(ip, folder_name, csv_file_name,
             mac = get_mac(ip, detected_os)
             if csv_out:
                 wr.writerow([ip, ping, name, mac])
-            print("{0} {1} {2} {3}".format(ip, ping, name, mac))
+            print_it(ip, ping, name, mac)
     else:
         ping = get_ping_ms_response(ip, detected_os)
         name = nslooky(ip, detected_os)
         mac = get_mac(ip, detected_os)
         if csv_out:
             wr.writerow([ip, ping, name, mac])
-        print("{0} {1} {2} {3}".format(ip, ping, name, mac))
+        print_it(ip, ping, name, mac)
     if csv_out:
         myfile.close()
 
@@ -337,7 +349,7 @@ def main(ip=None, start=1, end=255, get_all=False, csv_out=False):
     answer = int()
     ip_range = sorted([int(start), int(end)])  # ensure range from low to high
     while answer != 3:
-        print('\n\nQuery based on IP: {0}\n'
+        print('\nQuery based on IP: {0}\n'
               '1) Continue with detected IP (entries for x.x.x.{1}-{2})\n'
               '2) Enter another IP (creates one entry)\n'
               '3) Exit'.format(ip, ip_range[0], int(ip_range[1])))
@@ -348,7 +360,6 @@ def main(ip=None, start=1, end=255, get_all=False, csv_out=False):
                 answer = int(input("Selection? "))
             if answer == 1:
                 get_all = True
-                print('\n')
                 if csv_out:
                     title_check(folder_name, csv_file_name)
                 get_results(ip, folder_name, csv_file_name,
@@ -373,7 +384,7 @@ def main(ip=None, start=1, end=255, get_all=False, csv_out=False):
 
 
 if __name__ == "__main__":
-    # metavar hack from :
+    # metavar hack from:
     # http://stackoverflow.com/questions/16968188/
     # how-do-i-avoid-the-capital-placeholders-in-pythons-argparse-module
     parser = argparse.ArgumentParser(description="HostMAC")
