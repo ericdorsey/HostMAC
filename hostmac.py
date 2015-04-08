@@ -113,7 +113,7 @@ def subproc_pipe_runner(ip, command):
 
 def make_dir(folder_name):
     """
-    Create the output folder name if it doesn"t exist yet.
+    Create the output folder name if it doesn't exist yet.
 
     :param folder_name:
     :return: None
