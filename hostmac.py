@@ -23,7 +23,7 @@ def create_output_folder_name():
     :return: string
     """
     date_today = time.strftime("%Y-%m-%d")
-    folder_name = "%s_output" % date_today
+    folder_name = "{0}_output".format(date_today)
     return folder_name
 
 
@@ -34,7 +34,7 @@ def create_csv_file_name():
     :return: string
     """
     time_now = time.strftime("%I_%M_%p")
-    csv_file_name = "%s.csv" % time_now
+    csv_file_name = "{0}.csv".format(time_now)
     if csv_file_name[0] == "0":  # strip leading zero off
         csv_file_name = csv_file_name.lstrip("0")
     return csv_file_name
@@ -118,12 +118,12 @@ def make_dir(folder_name):
     :param folder_name:
     :return: None
     """
-    if not os.path.exists("./%s" % folder_name):
+    if not os.path.exists("./{0}".format(folder_name)):
         try:
-            os.makedirs("./%s" % folder_name)
-            print("Created output folder /%s" % folder_name)
+            os.makedirs("./{0}".format(folder_name))
+            print("Created output folder /{0}".format(folder_name))
         except OSError as err:
-            print("Unable to create folder /%s" % folder_name)
+            print("Unable to create folder /{0}".format(folder_name))
             exists_error = re.search("exists", str(err))
             if exists_error:  # in theory we should never trigger this
                 print("Reason: Folder already exists.")
@@ -160,8 +160,8 @@ def nslooky(ip, detected_os):
     :return: string
     """
     output_options = {
-        "nohost" : "No hostname found",
-        "unkhost" : "Unknown host"
+        "nohost": "No hostname found",
+        "unkhost": "Unknown host"
     }
     try:
         output = socket.gethostbyaddr(ip)
@@ -214,7 +214,8 @@ def get_ping_ms_response(ip, detected_os):
     :return: string
     """
     ping_result = subproc_pipe_runner(ip, detected_os["ping_cmd"])
-    ping_found = re.search(r"time[=<]?(\d*[\.]?\d*\s?ms)?", str(ping_result[0]))
+    ping_found = re.search(r"time[=<]?(\d*[\.]?\d*\s?ms)?",
+                           str(ping_result[0]))
     if not ping_found:
         ping_ms_response = "Host unreachable"
     elif ping_found and ping_found.group(1):
@@ -289,7 +290,7 @@ def get_results(ip, folder_name, csv_file_name,
         print("{0:<16} {1:<17} {2:<18} {3:<18}".format(ip, ping, name, mac))
     if csv_out:
         try:
-            myfile = open("./%s/%s" % (folder_name, csv_file_name), "a")
+            myfile = open("./{0}/{1}".format(folder_name, csv_file_name), "a")
             wr = csv.writer(myfile)
         except IOError as e:
             print("Could not open /{2}/{3}: I/O error({0}): {1}".format(
@@ -333,7 +334,8 @@ def main(ip=None, start=1, end=255, run_now=False, csv_out=False):
     :return: None
     """
     answer = int()
-    ip_range = sorted([int(start), int(end)])  # Ensure range sorted from low to high
+    # Ensure range sorted from low to high
+    ip_range = sorted([int(start), int(end)])
     if csv_out == True:
         title_check(folder_name, csv_file_name)
     if run_now == True:
@@ -374,25 +376,27 @@ if __name__ == "__main__":
     # http://stackoverflow.com/questions/16968188/
     # how-do-i-avoid-the-capital-placeholders-in-pythons-argparse-module
     parser = argparse.ArgumentParser(description="HostMAC")
-    parser.add_argument("-c", "--csv", help="log output to csv", action="store_true",
-                        required=False)
+    parser.add_argument("-c", "--csv", help="log output to csv",
+                        action="store_true", required=False)
     parser.add_argument("-i", "--ip", default=detect_ip(),
                         help="specify ip, default: current ip", required=False)
     parser.add_argument("-r", "--run", help="run immediately (no menu); "
-                        "optionally use --start and/or --end", action="store_true",
-                        required=False)
-    parser.add_argument("-s", "--start", default=1, type=int, choices=range(1, 254),
-                        metavar="\b", help="start of range", required=False)
-    parser.add_argument("-e", "--end", default=255, type=int, choices=range(2, 255),
-                        metavar="\b", help="end of range", required=False)
+                        "optionally use --start and/or --end",
+                        action="store_true", required=False)
+    parser.add_argument("-s", "--start", default=1, type=int,
+                        choices=range(1, 254),metavar="\b",
+                        help="start of range", required=False)
+    parser.add_argument("-e", "--end", default=255, type=int,
+                        choices=range(2, 255), metavar="\b",
+                        help="end of range", required=False)
     args = parser.parse_args()
     try:
         main(
-            ip=args.ip, 
-             start=args.start, 
-             end=args.end,
-             run_now=args.run, 
-             csv_out=args.csv
+            ip=args.ip,
+            start=args.start,
+            end=args.end,
+            run_now=args.run,
+            csv_out=args.csv
         )
     except KeyboardInterrupt:
         print("\nCanceled by user.. Exiting.")
