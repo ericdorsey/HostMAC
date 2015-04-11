@@ -3,7 +3,8 @@ import sys
 sys.path.append('..')
 import hostmac
 
-class hostmac_tests(unittest.TestCase):
+
+class HostMAC_Tests(unittest.TestCase):
 
     # create_output_folder_name()
     def test_create_output_folder_name_output_type(self):
@@ -46,18 +47,22 @@ class hostmac_tests(unittest.TestCase):
 
     # nslooky()
     def test_nslooky_returns_string(self):
-        self.assertEqual(str, type(hostmac.nslooky("192.168.1.1", detected_os=hostmac.detect_os())))
+        self.assertEqual(str, type(hostmac.nslooky(
+            "192.168.1.1", detected_os=hostmac.detect_os())))
 
     def test_nslooky_fails_on_wrong_argument(self):
-        self.assertRaises(TypeError, hostmac.nslooky(100, detected_os=hostmac.detect_os()))
+        self.assertRaises(TypeError, hostmac.nslooky(
+            100, detected_os=hostmac.detect_os()))
 
     # get_ping_ms_response()
     def test_get_ping_ms_response_returns_string(self):
-        self.assertEqual(str, type(hostmac.get_ping_ms_response("192.168.1.1", detected_os=hostmac.detect_os())))
+        self.assertEqual(str, type(hostmac.get_ping_ms_response(
+            "192.168.1.1", detected_os=hostmac.detect_os())))
 
     # get_mac()
     def test_get_mac_returns_string(self):
-        self.assertEqual(str, type(hostmac.get_mac("192.168.1.1", detected_os=hostmac.detect_os())))
+        self.assertEqual(str, type(hostmac.get_mac(
+            "192.168.1.1", detected_os=hostmac.detect_os())))
 
     # detect_ip()
     def test_detect_ip_returns_string(self):
