@@ -80,7 +80,7 @@ def subproc_pipe_runner(ip, command):
 
     :param ip: The IP to run the command against
     :param command: The shell command to interpret. Max one pipe ("|")
-    :return: string
+    :return: tuple
     """
     command = command.replace("{ip}", "{0}")
     command = command.format(ip)
@@ -115,7 +115,7 @@ def make_dir(folder_name):
     """
     Create the output folder name if it doesn't exist yet.
 
-    :param folder_name:
+    :param folder_name: string
     :return: None
     """
     if not os.path.exists("./{0}".format(folder_name)):
@@ -156,7 +156,7 @@ def nslooky(ip, detected_os):
     Given an IP, returns hostname.
 
     :param ip: string
-    :param detected_os: dict()
+    :param detected_os: dict
     :return: string
     """
     output_options = {
