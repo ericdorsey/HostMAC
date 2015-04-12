@@ -1,6 +1,6 @@
 # hostmac.py
 
-### Description:
+### Description
 
 When run, user has two available options: 
 
@@ -14,18 +14,33 @@ When run, user has two available options:
 Results are optionally written to ```/YYYY-MM-DD_output/HH_mm_{AM/PM}.csv```
 
 ### Help
+
+There are several command line flags available.
+
 Linux / OSX:
+
 ```
 $ ./hostmac.py -h
 ```
 
 Windows:
+
 ```
 C:\>python hostmac.py -h
 ```
-___
 
-### Tested in:
+### Tests
+
+```
+~/Code/HostMAC/tests $ python hostmac_test.py
+...............
+----------------------------------------------------------------------
+Ran 15 tests in 1.207s
+
+OK
+```
+
+### Compatibility:
 
 OS | Python Version
 --- | ---
@@ -41,7 +56,9 @@ OSX 10.10.2 | 2.7.6
 
 ### Limitations:
 
-IPv4 compatible only. Cygwin not supported.  
+* IPv4 compatible only. 
+* `Class C` (`/24`) subnets only 
+* Cygwin not supported.  
 
 ___
 [![https://www.python.org/](https://www.python.org/static/community_logos/python-powered-w-100x40.png)](https://www.python.org/)
